@@ -1,9 +1,12 @@
 import logging
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
-import os
+import uuid
 import time
+import os
+import shutil
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Response
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from typing import List, Optional, Dict
 from pathlib import Path
 import torch
 from diffusers import CogVideoXPipeline, StableVideoDiffusionPipeline
@@ -54,7 +57,10 @@ DEFAULT_CONFIG = {
         "default_model": "cogvideox_2b",
         "use_gpu": True,
         "dtype": "float16",
-        "output_folder": "./outputs"
+        "output_folder": "./outputs",
+        "port": 8088,
+        "host": "0.0.0.0",
+        "file_retention_time": 3600  # 1 hour in seconds
     }
 }
 
@@ -88,6 +94,18 @@ class MultiPromptVideoRequest(BaseModel):
     guidance_scale: float = 6.0
     seed: Optional[int] = None
 
+# Job status model
+class JobStatus(BaseModel):
+    job_id: str
+    status: str  # "pending", "processing", "completed", "failed"
+    message: Optional[str] = None
+    video_url: Optional[str] = None
+    created_at: float
+    expires_at: float
+
+# In-memory job storage (use a database like Redis in production)
+jobs: Dict[str, JobStatus] = {}
+
 # Video Generation Service
 class VideoGenService:
     def __init__(self):
@@ -97,6 +115,7 @@ class VideoGenService:
         self.dtype = torch.float16 if config["settings"]["dtype"] == "float16" else torch.bfloat16
         self.output_folder = Path(config["settings"]["output_folder"])
         self.output_folder.mkdir(exist_ok=True, parents=True)
+        self.file_retention_time = config["settings"]["file_retention_time"]
         self.pipelines = {}
         self.load_pipelines()
 
@@ -123,10 +142,13 @@ class VideoGenService:
             except Exception as e:
                 logger.error(f"Failed to load model {model_key}: {str(e)}")
 
-    def generate_video(self, request: VideoGenerationRequest) -> str:
+    def generate_video(self, job_id: str, request: VideoGenerationRequest) -> None:
+        jobs[job_id].status = "processing"
         model_key = request.model_name or self.default_model
         if model_key not in self.pipelines:
-            raise ValueError(f"Model {model_key} not found or not loaded.")
+            jobs[job_id].status = "failed"
+            jobs[job_id].message = f"Model {model_key} not found or not loaded."
+            return
 
         pipeline = self.pipelines[model_key]
         output_path = Path(request.output_folder) if request.output_folder else self.output_folder
@@ -144,21 +166,26 @@ class VideoGenService:
             gen_params["generator"] = torch.Generator(device="cuda" if self.use_gpu else "cpu").manual_seed(request.seed)
 
         try:
-            logger.info(f"Generating video with {model_key}...")
+            logger.info(f"Generating video for job {job_id} with {model_key}...")
             start_time = time.time()
             video_frames = pipeline(**gen_params).frames[0]
-            output_filename = output_path / f"video_{model_key}_{int(time.time())}.mp4"
+            output_filename = output_path / f"video_{job_id}.mp4"
             export_to_video(video_frames, str(output_filename), fps=request.fps)
             elapsed_time = time.time() - start_time
-            logger.info(f"Video generated in {elapsed_time:.2f}s at {output_filename}")
-            return str(output_filename)
+            logger.info(f"Video for job {job_id} generated in {elapsed_time:.2f}s at {output_filename}")
+            jobs[job_id].status = "completed"
+            jobs[job_id].video_url = f"/download/{job_id}"
+            jobs[job_id].message = "Video generated successfully"
         except Exception as e:
-            logger.error(f"Video generation failed: {str(e)}")
-            raise RuntimeError(f"Video generation failed: {str(e)}")
+            logger.error(f"Video generation for job {job_id} failed: {str(e)}")
+            jobs[job_id].status = "failed"
+            jobs[job_id].message = f"Video generation failed: {str(e)}"
 
-    def generate_video_by_frames(self, request: MultiPromptVideoRequest) -> str:
+    def generate_video_by_frames(self, job_id: str, request: MultiPromptVideoRequest) -> None:
         if not request.prompts or not request.frames:
-            raise ValueError("Prompts and frames lists cannot be empty")
+            jobs[job_id].status = "failed"
+            jobs[job_id].message = "Prompts and frames lists cannot be empty"
+            return
 
         combined_prompt = " ".join(request.prompts)
         total_frames = sum(request.frames)
@@ -169,9 +196,29 @@ class VideoGenService:
             nb_frames=total_frames,
             steps=request.num_inference_steps,
             fps=request.fps,
-            seed=request.seed if request.seed is not None else -1
+            seed=request.seed if request.seed is not None else -1,
+            output_folder=config["settings"]["output_folder"]
         )
-        return self.generate_video(video_request)
+        self.generate_video(job_id, video_request)
+
+    def cleanup_expired_files(self):
+        """Remove expired files and job records."""
+        current_time = time.time()
+        expired_jobs = []
+        for job_id, job in jobs.items():
+            if current_time > job.expires_at:
+                expired_jobs.append(job_id)
+                video_path = self.output_folder / f"video_{job_id}.mp4"
+                if video_path.exists():
+                    try:
+                        video_path.unlink()
+                        logger.info(f"Deleted expired file for job {job_id}: {video_path}")
+                    except Exception as e:
+                        logger.error(f"Failed to delete expired file for job {job_id}: {str(e)}")
+
+        for job_id in expired_jobs:
+            del jobs[job_id]
+            logger.info(f"Removed expired job record: {job_id}")
 
 service = VideoGenService()
 
@@ -181,7 +228,7 @@ async def health_check():
     """Check if the service is running"""
     return {
         "status": "healthy",
-        "default_model": service.default_model,
+        "default_model": service models,
         "loaded_models": list(service.pipelines.keys()),
         "gpu_available": service.use_gpu
     }
@@ -191,24 +238,37 @@ async def get_models():
     """Get available models"""
     return {"models": list(service.models.keys())}
 
-@app.post("/generate")
-async def generate_video(request: VideoGenerationRequest):
-    """Generate a video from a single prompt"""
-    try:
-        output_path = service.generate_video(request)
-        return {"video_path": output_path, "message": "Video generated successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.post("/submit")
+async def submit_job(request: VideoGenerationRequest, background_tasks: BackgroundTasks):
+    """Submit a video generation job and return a job ID"""
+    job_id = str(uuid.uuid4())
+    created_at = time.time()
+    expires_at = created_at + service.file_retention_time
 
-@app.post("/generate_multi")
-async def generate_multi_prompt_video(request: MultiPromptVideoRequest):
-    """Generate a video from multiple prompts"""
-    try:
-        output_path = service.generate_video_by_frames(request)
-        return {"video_path": output_path, "message": "Video generated successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    jobs[job_id] = JobStatus(
+        job_id=job_id,
+        status="pending",
+        created_at=created_at,
+        expires_at=expires_at
+    )
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    background_tasks.add_task(service.generate_video, job_id, request)
+    background_tasks.add_task(service.cleanup_expired_files)
+
+    return {"job_id": job_id, "message": "Job submitted successfully"}
+
+@app.post("/submit_multi")
+async def submit_multi_job(request: MultiPromptVideoRequest, background_tasks: BackgroundTasks):
+    """Submit a multi-prompt video generation job and return a job ID"""
+    job_id = str(uuid.uuid4())
+    created_at = time.time()
+    expires_at = created_at + service.file_retention_time
+
+    jobs[job_id] = JobStatus(
+        job_id=job_id,
+        status="pending",
+        created_at=created_at,
+        expires_at=expires_at
+    )
+
+    background_tasks.add_task(service.generate_video_by_frames, job_id, request)
