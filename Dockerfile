@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port (will be configurable via config.toml)
+# Expose the port (default from config.toml)
 EXPOSE 8088
 
 # Run the application
