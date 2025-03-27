@@ -188,7 +188,7 @@ class VideoGenService:
         self.force_gpu = config["settings"].get("force_gpu", False)
         self.dtype = torch.float16 if config["settings"].get("dtype", "float16") == "float16" else torch.bfloat16
         self.output_folder = Path(config["settings"].get("output_folder", "./outputs"))
-        self.model_cache_dir = Path(config["settings"].get("model_cache_dir", "./model_cache"))  # New attribute
+        self.model_cache_dir = Path(config["settings"].get("model_cache_dir", "./models"))  # New attribute
         self.output_folder.mkdir(exist_ok=True, parents=True)
         self.model_cache_dir.mkdir(exist_ok=True, parents=True)  # Create the directory if it doesn't exist
         self.file_retention_time = config["settings"].get("file_retention_time", 3600 * 5)
