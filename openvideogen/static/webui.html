@@ -9,20 +9,22 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #1e3a8a, #9333ea);
+            background: linear-gradient(135deg, #1e3a8a, #9333ea, #4f46e5);
             min-height: 100vh;
             margin: 0;
             padding: 0;
+            color: #e5e7eb;
         }
         [lang="ar"] body {
             font-family: 'Noto Sans Arabic', sans-serif;
             direction: rtl;
         }
         .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
         }
         .top-bar {
             position: fixed;
@@ -30,61 +32,107 @@
             left: 0;
             right: 0;
             z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .top-bar:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
         #settingsModal {
             display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
         }
         #settingsModal.show {
             display: flex;
+            opacity: 1;
+        }
+        #settingsModal .glass {
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #settingsModal.show .glass {
+            transform: scale(1);
+        }
+        button, select, input, textarea {
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        select:hover, input:hover, textarea:hover {
+            border-color: #a855f7;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+        }
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        #progressBar {
+            transition: width 0.5s ease;
+        }
+        .settings-btn svg {
+            transition: transform 0.2s ease;
+        }
+        .settings-btn:hover svg {
+            transform: rotate(90deg);
         }
     </style>
 </head>
-<body class="text-white">
+<body>
     <!-- Top Bar -->
     <div class="top-bar glass p-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-3">
             <img src="/static/assets/openvideogen-icon.png" alt="OpenVideoGen Icon" class="w-8 h-8">
-            <h1 class="text-xl font-bold">OpenVideoGen</h1>
+            <h1 class="text-xl font-bold tracking-tight">OpenVideoGen</h1>
         </div>
-        <div class="flex space-x-4">
-            <select id="language" class="bg-gray-800 text-white p-2 rounded-lg border border-gray-700">
+        <div class="flex items-center space-x-4">
+            <select id="language" class="bg-gray-900 text-white p-2 rounded-lg border border-gray-800 hover:bg-gray-800">
                 <option value="en">English</option>
                 <option value="fr">Français</option>
                 <option value="ar">العربية</option>
             </select>
-            <button id="settingsBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" data-i18n="settings">Settings</button>
+            <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank">
+                <img src="https://img.shields.io/github/stars/ParisNeo/OpenVideoGen.svg?style=social&label=Stars" alt="GitHub Stars" class="h-5">
+            </a>
+            <button id="settingsBtn" class="settings-btn bg-purple-700 hover:bg-purple-800 text-white p-2 rounded-lg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7.14-2.06a7.1 7.1 0 0 0 .06-1.88 7.1 7.1 0 0 0-.06-1.88l-2.03-1.17-2.3-.92-.4-2.32-2.32.12-1.14 2.03-2.34.02-.92 2.3-2.32.4.12 2.32 2.03 1.14 2.34-.02 2.3.92.4 2.32 2.32-.12 1.14-2.03 2.34-.02.92-2.3 2.32-.4-.12-2.32-2.03-1.14z" fill="#fff"/>
+                </svg>
+            </button>
         </div>
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-        <div class="glass rounded-xl p-6 w-full max-w-lg">
-            <h2 class="text-2xl font-semibold mb-4" data-i18n="settings">Settings</h2>
-            <div class="space-y-4">
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-20">
+        <div class="glass p-6 w-full max-w-md">
+            <h2 class="text-2xl font-semibold mb-6" data-i18n="settings">Settings</h2>
+            <div class="space-y-6">
                 <div>
                     <label for="negative_prompt" class="block text-sm font-medium" data-i18n="negative_prompt">Negative Prompt</label>
-                    <textarea id="negative_prompt" name="negative_prompt" rows="2" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="negative_prompt_placeholder"></textarea>
+                    <textarea id="negative_prompt" name="negative_prompt" rows="2" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="guidance_scale" class="block text-sm font-medium" data-i18n="guidance_scale">Guidance Scale</label>
-                        <input type="number" id="guidance_scale" name="guidance_scale" min="1" max="20" step="0.1" value="6.0" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="number" id="guidance_scale" name="guidance_scale" min="1" max="20" step="0.1" value="6.0" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
                         <label for="steps" class="block text-sm font-medium" data-i18n="steps">Inference Steps</label>
-                        <input type="number" id="steps" name="steps" min="1" value="50" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="number" id="steps" name="steps" min="1" value="50" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
                         <label for="seed" class="block text-sm font-medium" data-i18n="seed">Seed</label>
-                        <input type="number" id="seed" name="seed" min="-1" value="-1" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="number" id="seed" name="seed" min="-1" value="-1" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
                         <label for="fps" class="block text-sm font-medium" data-i18n="fps">FPS</label>
-                        <input type="number" id="fps" name="fps" min="1" value="8" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <input type="number" id="fps" name="fps" min="1" value="8" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
                         <label for="resolution" class="block text-sm font-medium" data-i18n="resolution">Resolution</label>
-                        <select id="resolution" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <select id="resolution" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="480x360">480x360 (360p)</option>
                             <option value="720x480">720x480 (480p)</option>
                             <option value="1280x720" selected>1280x720 (720p)</option>
@@ -98,47 +146,47 @@
                 </div>
             </div>
             <div class="flex justify-end mt-6">
-                <button id="closeSettings" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200" data-i18n="close">Close</button>
+                <button id="closeSettings" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg" data-i18n="close">Close</button>
             </div>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-20 max-w-5xl">
+    <div class="container mx-auto px-6 py-24 max-w-5xl">
         <!-- Header -->
         <header class="text-center mb-12">
-            <p class="text-lg text-gray-300" data-i18n="tagline">Generate stunning videos with AI-powered diffusion models</p>
-            <p class="mt-1 text-sm text-gray-400">Created by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a></p>
+            <p class="text-xl text-gray-200 font-medium" data-i18n="tagline">Generate stunning videos with AI-powered diffusion models</p>
+            <p class="mt-2 text-sm text-gray-400">Created by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a></p>
         </header>
 
         <!-- Tabs -->
-        <div class="glass rounded-xl p-6">
+        <div class="glass p-6">
             <div class="flex border-b border-gray-700">
-                <button id="tab-generate" class="tab-btn flex-1 py-2 px-4 text-center font-semibold text-purple-400 border-b-2 border-purple-600" data-i18n="tab_generate">Generate Video</button>
-                <button id="tab-status" class="tab-btn flex-1 py-2 px-4 text-center font-semibold text-gray-300" data-i18n="tab_status">Job Status</button>
-                <button id="tab-help" class="tab-btn flex-1 py-2 px-4 text-center font-semibold text-gray-300" data-i18n="tab_help">Help</button>
+                <button id="tab-generate" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-purple-400 border-b-2 border-purple-600" data-i18n="tab_generate">Generate Video</button>
+                <button id="tab-status" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-gray-300" data-i18n="tab_status">Job Status</button>
+                <button id="tab-help" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-gray-300" data-i18n="tab_help">Help</button>
             </div>
 
             <!-- Generate Video Tab -->
             <div id="content-generate" class="tab-content mt-6">
-                <form id="videoForm" class="space-y-4">
+                <form id="videoForm" class="space-y-6">
                     <div>
                         <label for="prompt" class="block text-sm font-medium" data-i18n="prompt">Prompt</label>
-                        <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_placeholder"></textarea>
+                        <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_placeholder"></textarea>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="model" class="block text-sm font-medium" data-i18n="model">Model</label>
-                            <select id="model" name="model_name" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <select id="model" name="model_name" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <option value="" data-i18n="select_model">Select a model</option>
                             </select>
                         </div>
                         <div>
                             <label for="frames" class="block text-sm font-medium" data-i18n="frames">Number of Frames</label>
-                            <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200" data-i18n="generate">Generate Video</button>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg" data-i18n="generate">Generate Video</button>
                     </div>
                 </form>
                 <p id="formMessage" class="mt-4 text-sm text-gray-300 hidden"></p>
@@ -146,21 +194,21 @@
 
             <!-- Job Status Tab -->
             <div id="content-status" class="tab-content mt-6 hidden">
-                <div class="space-y-4">
+                <div class="space-y-6">
                     <div class="flex space-x-4">
-                        <input type="text" id="jobIdInput" class="flex-1 p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="job_id_placeholder">
+                        <input type="text" id="jobIdInput" class="flex-1 p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="job_id_placeholder">
                     </div>
                     <div id="statusDisplay" class="text-sm text-gray-300 hidden">
                         <p><strong data-i18n="job_id">Job ID:</strong> <span id="jobId"></span></p>
                         <p><strong data-i18n="status">Status:</strong> <span id="status"></span></p>
                         <p><strong data-i18n="progress">Progress:</strong> <span id="progressValue">0%</span></p>
-                        <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
-                            <div id="progressBar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        <div class="w-full bg-gray-800 rounded-full h-3 mt-2">
+                            <div id="progressBar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full" style="width: 0%"></div>
                         </div>
                         <p class="mt-2"><strong data-i18n="message">Message:</strong> <span id="message"></span></p>
                         <div id="downloadSection" class="mt-4 hidden">
                             <a id="downloadLink" href="#" class="text-purple-400 hover:underline" data-i18n="download">Download Video</a>
-                            <video id="videoPreview" controls class="mt-4 w-full rounded-lg" hidden>
+                            <video id="videoPreview" controls class="mt-4 w-full rounded-lg shadow-lg" hidden>
                                 <source id="videoSource" type="video/mp4">
                             </video>
                         </div>
@@ -170,7 +218,7 @@
 
             <!-- Help Tab -->
             <div id="content-help" class="tab-content mt-6 hidden">
-                <div class="space-y-3 text-sm text-gray-300">
+                <div class="space-y-4 text-sm text-gray-300">
                     <p><strong data-i18n="how_to_use">How to Use:</strong></p>
                     <ul class="list-disc list-inside" data-i18n="how_to_use_list">
                         <li>Enter a prompt in the "Generate Video" tab.</li>
@@ -188,11 +236,8 @@
         </div>
 
         <!-- Footer -->
-        <footer class="text-center text-gray-400 text-sm mt-8">
-            <p>Built by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub Repo</a></p>
-            <p class="mt-1">OpenVideoGen: <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">ParisNeo/OpenVideoGen</a> (<span id="starCount">Fetching stars...</span>)</p>
-            <p class="mt-1">Explore: <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
-            <p class="mt-1">© 2025 OpenVideoGen</p>
+        <footer class="text-center text-gray-400 text-sm mt-12">
+            <p>© 2025 OpenVideoGen by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub</a> | <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
         </footer>
     </div>
 
@@ -314,18 +359,6 @@
             }
         }
 
-        // Fetch GitHub stars
-        async function loadStarCount() {
-            try {
-                const response = await fetch('https://api.github.com/repos/ParisNeo/OpenVideoGen');
-                const data = await response.json();
-                document.getElementById('starCount').textContent = `${data.stargazers_count} stars`;
-            } catch (error) {
-                document.getElementById('starCount').textContent = 'Check repo for stars';
-                console.error('Failed to fetch star count:', error);
-            }
-        }
-
         // Localization function
         function updateLanguage(lang) {
             document.documentElement.lang = lang;
@@ -347,7 +380,6 @@
                 el.placeholder = translations[lang][key] || '';
             });
             document.querySelector('#videoForm button').textContent = translations[lang].generate;
-            document.getElementById('settingsBtn').textContent = translations[lang].settings;
             document.getElementById('closeSettings').textContent = translations[lang].close;
         }
 
@@ -530,7 +562,6 @@
         window.addEventListener('load', () => {
             loadSettings();
             loadModels();
-            loadStarCount();
             updateResolution(document.getElementById('resolution').value); // Set initial width/height
         });
     </script>
