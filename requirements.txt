@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+torch
+diffusers
+transformers
+accelerate
+imageio-ffmpeg
+sentencepiece
+toml
+pipmaster
