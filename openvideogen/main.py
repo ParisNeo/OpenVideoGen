@@ -430,7 +430,7 @@ app.mount("/static", StaticFiles(directory=str(Path(__file__).parent/"static")),
 @app.get("/webui", response_class=HTMLResponse)
 async def serve_webui():
     try:
-        with open(str(Path(__file__).parent/"static/webui.html"), "r") as f:
+        with open(str(Path(__file__).parent/"static/webui.html"), "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read(), status_code=200)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Web UI file not found")
