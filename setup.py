@@ -7,7 +7,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="ParisNeo",
-    author_email="your-email@example.com",  # Replace with your email
+    author_email="parisneo_ai@example.com",  # Replace with your email
     url="https://github.com/ParisNeo/OpenVideoGen",
     packages=find_packages(),
     install_requires=[
@@ -33,5 +33,5 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.11",
 )
