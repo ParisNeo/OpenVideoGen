@@ -93,6 +93,7 @@ def load_config():
             "use_gpu": True,
             "dtype": "float16",
             "output_folder": "./outputs",
+            "model_cache_dir": "./model_cache",  # New setting for model cache directory
             "port": 8088,
             "host": "0.0.0.0",
             "file_retention_time": 3600  # 1 hour in seconds
@@ -187,8 +188,10 @@ class VideoGenService:
         self.force_gpu = config["settings"].get("force_gpu", False)
         self.dtype = torch.float16 if config["settings"].get("dtype", "float16") == "float16" else torch.bfloat16
         self.output_folder = Path(config["settings"].get("output_folder", "./outputs"))
+        self.model_cache_dir = Path(config["settings"].get("model_cache_dir", "./model_cache"))  # New attribute
         self.output_folder.mkdir(exist_ok=True, parents=True)
-        self.file_retention_time = config["settings"].get("file_retention_time", 3600)  # Default: 1 hour
+        self.model_cache_dir.mkdir(exist_ok=True, parents=True)  # Create the directory if it doesn't exist
+        self.file_retention_time = config["settings"].get("file_retention_time", 3600 * 5)
         self.default_guidance_scale = config["generation"].get("guidance_scale", 6)
         self.default_num_inference_steps = config["generation"].get("num_inference_steps", 50)
         self.pipelines = {}
@@ -203,17 +206,22 @@ class VideoGenService:
             try:
                 if model_info["type"] == "cogvideox":
                     pipeline = CogVideoXPipeline.from_pretrained(
-                        model_info["name"], torch_dtype=self.dtype
+                        model_info["name"], 
+                        torch_dtype=self.dtype,
+                        cache_dir=self.model_cache_dir  # Pass the cache directory
                     )
                 elif model_info["type"] == "stablevideo":
                     pipeline = StableVideoDiffusionPipeline.from_pretrained(
-                        model_info["name"], torch_dtype=self.dtype
+                        model_info["name"], 
+                        torch_dtype=self.dtype,
+                        cache_dir=self.model_cache_dir  # Pass the cache directory
                     )
                 elif model_info["type"] == "mochi":
                     pipeline = MochiPipeline.from_pretrained(
-                        model_info["name"], torch_dtype=self.dtype
+                        model_info["name"], 
+                        torch_dtype=self.dtype,
+                        cache_dir=self.model_cache_dir  # Pass the cache directory
                     )
-                    # Enable memory-saving features for Mochi
                     pipeline.enable_vae_tiling()
                 else:
                     logger.warning(f"Unsupported model type for {model_key}: {model_info['type']}")
@@ -223,7 +231,7 @@ class VideoGenService:
                     pipeline.to("cuda")
                     pipeline.enable_model_cpu_offload()
                 self.pipelines[model_key] = pipeline
-                logger.info(f"Loaded model: {model_key}")
+                logger.info(f"Loaded model: {model_key} into {self.model_cache_dir}")
             except Exception as e:
                 logger.error(f"Failed to load model {model_key}: {str(e)}")
 

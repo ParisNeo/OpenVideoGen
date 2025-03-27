@@ -12,7 +12,7 @@ dtype = "float16"
 output_folder = "./outputs"
 port = 8088
 host = "0.0.0.0"
-file_retention_time = 3600  # Files are deleted after 1 hour (3600 seconds)
+file_retention_time = 86400  # Files are deleted after 24 hours (3600 *24  seconds)
 
 [generation]
 guidance_scale = 6.0
