@@ -3,6 +3,8 @@ import uuid
 import time
 import os
 import shutil
+import argparse
+import platform
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -45,31 +47,97 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Load configuration
-CONFIG_PATH = Path("config.toml")
-DEFAULT_CONFIG = {
-    "models": {
-        "cogvideox_2b": {"name": "THUDM/CogVideoX-2b", "type": "cogvideox"},
-        "cogvideox_5b": {"name": "THUDM/CogVideoX-5b", "type": "cogvideox"},
-        "stable_video": {"name": "stabilityai/stable-video-diffusion-img2vid", "type": "stablevideo"}
-    },
-    "settings": {
-        "default_model": "cogvideox_2b",
-        "use_gpu": True,
-        "dtype": "float16",
-        "output_folder": "./outputs",
-        "port": 8088,
-        "host": "0.0.0.0",
-        "file_retention_time": 3600  # 1 hour in seconds
+# Determine config file search paths based on OS
+def get_config_search_paths():
+    system = platform.system()
+    search_paths = []
+
+    if system == "Linux":
+        search_paths.extend([
+            Path("/etc/openvideogen/config.toml"),
+            Path("/usr/local/etc/openvideogen/config.toml"),
+            Path.home() / ".config/openvideogen/config.toml",
+            Path.cwd() / "config.toml"
+        ])
+    elif system == "Windows":
+        search_paths.extend([
+            Path(os.getenv("APPDATA", Path.home() / "AppData/Roaming")) / "openvideogen/config.toml",
+            Path.cwd() / "config.toml"
+        ])
+    elif system == "Darwin":  # macOS
+        search_paths.extend([
+            Path.home() / "Library/Application Support/openvideogen/config.toml",
+            Path("/usr/local/etc/openvideogen/config.toml"),
+            Path.cwd() / "config.toml"
+        ])
+    else:
+        search_paths.append(Path.cwd() / "config.toml")
+
+    return search_paths
+
+# Load configuration with priority: command-line arg > env var > search paths
+def load_config():
+    DEFAULT_CONFIG = {
+        "models": {
+            "cogvideox_2b": {"name": "THUDM/CogVideoX-2b", "type": "cogvideox"},
+            "cogvideox_5b": {"name": "THUDM/CogVideoX-5b", "type": "cogvideox"},
+            "stable_video": {"name": "stabilityai/stable-video-diffusion-img2vid", "type": "stablevideo"}
+        },
+        "settings": {
+            "default_model": "cogvideox_2b",
+            "force_gpu": False,
+            "use_gpu": True,
+            "dtype": "float16",
+            "output_folder": "./outputs",
+            "port": 8088,
+            "host": "0.0.0.0",
+            "file_retention_time": 3600
+        },
+        "generation": {
+            "guidance_scale": 6.0,
+            "num_inference_steps": 50
+        }
     }
-}
 
-if not CONFIG_PATH.exists():
-    with open(CONFIG_PATH, "w") as f:
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="OpenVideoGen API Server")
+    parser.add_argument("--config", type=str, help="Path to the config.toml file")
+    args = parser.parse_args()
+
+    # Check command-line argument
+    if args.config:
+        config_path = Path(args.config)
+        if not config_path.exists():
+            logger.error(f"Config file specified via --config not found: {config_path}")
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+        logger.info(f"Loading config from command-line argument: {config_path}")
+        return toml.load(config_path)
+
+    # Check environment variable
+    env_config_path = os.getenv("OPENVIDEOGEN_CONFIG")
+    if env_config_path:
+        config_path = Path(env_config_path)
+        if not config_path.exists():
+            logger.error(f"Config file specified via OPENVIDEOGEN_CONFIG not found: {config_path}")
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+        logger.info(f"Loading config from environment variable: {config_path}")
+        return toml.load(config_path)
+
+    # Search for config file in standard locations
+    search_paths = get_config_search_paths()
+    for path in search_paths:
+        if path.exists():
+            logger.info(f"Loading config from: {path}")
+            return toml.load(path)
+
+    # If no config file is found, create a default one in the current directory
+    default_path = Path.cwd() / "config.toml"
+    with open(default_path, "w") as f:
         toml.dump(DEFAULT_CONFIG, f)
-        logger.info("Created default config.toml")
+        logger.info(f"Created default config.toml at: {default_path}")
+    return DEFAULT_CONFIG
 
-config = toml.load(CONFIG_PATH)
+config = load_config()
 
 # Pydantic models for request validation
 class VideoGenerationRequest(BaseModel):
@@ -78,7 +146,8 @@ class VideoGenerationRequest(BaseModel):
     model_name: Optional[str] = None
     height: int = 480
     width: int = 720
-    steps: int = 50
+    steps: Optional[int] = None  # Override num_inference_steps
+    guidance_scale: Optional[float] = None  # Override guidance_scale
     seed: int = -1
     nb_frames: int = 49
     fps: int = 8
@@ -90,9 +159,10 @@ class MultiPromptVideoRequest(BaseModel):
     negative_prompt: Optional[str] = None
     model_name: Optional[str] = None
     fps: int = 8
-    num_inference_steps: int = 50
-    guidance_scale: float = 6.0
+    num_inference_steps: Optional[int] = None  # Override num_inference_steps
+    guidance_scale: Optional[float] = None  # Override guidance_scale
     seed: Optional[int] = None
+    output_folder: Optional[str] = None
 
 # Job status model
 class JobStatus(BaseModel):
@@ -112,14 +182,21 @@ class VideoGenService:
         self.models = config["models"]
         self.default_model = config["settings"]["default_model"]
         self.use_gpu = config["settings"]["use_gpu"] and torch.cuda.is_available()
+        self.force_gpu = config["settings"]["force_gpu"]
         self.dtype = torch.float16 if config["settings"]["dtype"] == "float16" else torch.bfloat16
         self.output_folder = Path(config["settings"]["output_folder"])
         self.output_folder.mkdir(exist_ok=True, parents=True)
         self.file_retention_time = config["settings"]["file_retention_time"]
+        self.default_guidance_scale = config["generation"]["guidance_scale"]
+        self.default_num_inference_steps = config["generation"]["num_inference_steps"]
         self.pipelines = {}
         self.load_pipelines()
 
     def load_pipelines(self):
+        if self.force_gpu and not torch.cuda.is_available():
+            logger.error("force_gpu is set to True, but no GPU is available.")
+            raise RuntimeError("force_gpu is set to True, but no GPU is available.")
+
         for model_key, model_info in self.models.items():
             try:
                 if model_info["type"] == "cogvideox":
@@ -134,7 +211,7 @@ class VideoGenService:
                     logger.warning(f"Unsupported model type for {model_key}: {model_info['type']}")
                     continue
 
-                if self.use_gpu:
+                if self.force_gpu or (self.use_gpu and torch.cuda.is_available()):
                     pipeline.to("cuda")
                     pipeline.enable_model_cpu_offload()
                 self.pipelines[model_key] = pipeline
@@ -157,13 +234,13 @@ class VideoGenService:
         gen_params = {
             "prompt": request.prompt,
             "num_frames": request.nb_frames,
-            "num_inference_steps": request.steps,
-            "guidance_scale": 6.0,
+            "num_inference_steps": request.steps if request.steps is not None else self.default_num_inference_steps,
+            "guidance_scale": request.guidance_scale if request.guidance_scale is not None else self.default_guidance_scale,
             "height": request.height,
             "width": request.width,
         }
         if request.seed != -1:
-            gen_params["generator"] = torch.Generator(device="cuda" if self.use_gpu else "cpu").manual_seed(request.seed)
+            gen_params["generator"] = torch.Generator(device="cuda" if (self.force_gpu or self.use_gpu) else "cpu").manual_seed(request.seed)
 
         try:
             logger.info(f"Generating video for job {job_id} with {model_key}...")
@@ -195,9 +272,12 @@ class VideoGenService:
             model_name=request.model_name,
             nb_frames=total_frames,
             steps=request.num_inference_steps,
-            fps=request.fps,
+            guidance_scale=request.guidance_scale,
             seed=request.seed if request.seed is not None else -1,
-            output_folder=config["settings"]["output_folder"]
+            output_folder=request.output_folder if request.output_folder else config["settings"]["output_folder"],
+            fps=request.fps,
+            height=480,  # Default values
+            width=720
         )
         self.generate_video(job_id, video_request)
 
@@ -228,9 +308,11 @@ async def health_check():
     """Check if the service is running"""
     return {
         "status": "healthy",
-        "default_model": service models,
+        "default_model": service.default_model,
         "loaded_models": list(service.pipelines.keys()),
-        "gpu_available": service.use_gpu
+        "gpu_available": torch.cuda.is_available(),
+        "force_gpu": service.force_gpu,
+        "use_gpu": service.use_gpu
     }
 
 @app.get("/models")
@@ -272,3 +354,35 @@ async def submit_multi_job(request: MultiPromptVideoRequest, background_tasks: B
     )
 
     background_tasks.add_task(service.generate_video_by_frames, job_id, request)
+    background_tasks.add_task(service.cleanup_expired_files)
+
+    return {"job_id": job_id, "message": "Multi-prompt job submitted successfully"}
+
+@app.get("/status/{job_id}")
+async def get_job_status(job_id: str):
+    """Check the status of a job"""
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return jobs[job_id]
+
+@app.get("/download/{job_id}")
+async def download_video(job_id: str):
+    """Download the generated video for a job"""
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = jobs[job_id]
+    if job.status != "completed" or not job.video_url:
+        raise HTTPException(status_code=400, detail="Video not ready or generation failed")
+
+    video_path = service.output_folder / f"video_{job_id}.mp4"
+    if not video_path.exists():
+        raise HTTPException(status_code=404, detail="Video file not found")
+
+    return FileResponse(video_path, media_type="video/mp4", filename=f"video_{job_id}.mp4")
+
+if __name__ == "__main__":
+    import uvicorn
+    host = config["settings"]["host"]
+    port = config["settings"]["port"]
+    uvicorn.run(app, host=host, port=port)
