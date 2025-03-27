@@ -39,7 +39,7 @@ def install_dependencies():
     if not pm.is_installed("torch"):
         logger.info(f"Installing torch...")
         pm.install_multiple(["torch", "torchvision", "torchaudio"], "https://download.pytorch.org/whl/cu124")
-    for package in ["diffusers", "transformers", "accelerate", "imageio-ffmpeg", "sentencepiece", "toml"]:
+    for package in ["diffusers", "transformers", "accelerate", "imageio", "imageio-ffmpeg", "sentencepiece", "toml"]:
         logger.info(f"Installing {package}...")
         if not pm.is_installed(package):
             pm.install(package)

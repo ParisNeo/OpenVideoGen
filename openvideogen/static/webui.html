@@ -24,22 +24,37 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="text-white">
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
-        <header class="text-center mb-12 flex items-center justify-center flex-col">
-            <img src="/static/assets/openvideogen-icon.png" alt="OpenVideoGen Icon" class="w-16 h-16 mb-4">
-            <h1 class="text-4xl font-bold tracking-tight">OpenVideoGen</h1>
-            <p class="mt-2 text-lg text-gray-300" data-i18n="tagline">Generate stunning videos with AI-powered diffusion models</p>
+    <!-- Top Bar -->
+    <div class="top-bar glass p-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <img src="/static/assets/openvideogen-icon.png" alt="OpenVideoGen Icon" class="w-8 h-8">
+            <h1 class="text-xl font-bold">OpenVideoGen</h1>
+        </div>
+        <div class="flex space-x-4">
+            <select id="language" class="bg-gray-800 text-white p-2 rounded-lg border border-gray-700">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+            </select>
+            <button id="settingsBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200" data-i18n="settings">Settings</button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-20 max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <p class="text-lg text-gray-300" data-i18n="tagline">Generate stunning videos with AI-powered diffusion models</p>
             <p class="mt-1 text-sm text-gray-400">Created by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a></p>
-            <div class="mt-4">
-                <select id="language" class="bg-gray-800 text-white p-2 rounded-lg border border-gray-700">
-                    <option value="en">English</option>
-                    <option value="fr">Français</option>
-                    <option value="ar">العربية</option>
-                </select>
-            </div>
         </header>
 
         <!-- Tabs -->
@@ -57,10 +72,6 @@
                         <label for="prompt" class="block text-sm font-medium" data-i18n="prompt">Prompt</label>
                         <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_placeholder"></textarea>
                     </div>
-                    <div>
-                        <label for="negative_prompt" class="block text-sm font-medium" data-i18n="negative_prompt">Negative Prompt</label>
-                        <textarea id="negative_prompt" name="negative_prompt" rows="2" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="negative_prompt_placeholder"></textarea>
-                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label for="model" class="block text-sm font-medium" data-i18n="model">Model</label>
@@ -72,29 +83,45 @@
                             <label for="frames" class="block text-sm font-medium" data-i18n="frames">Number of Frames</label>
                             <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
-                        <div>
-                            <label for="guidance_scale" class="block text-sm font-medium" data-i18n="guidance_scale">Guidance Scale</label>
-                            <input type="number" id="guidance_scale" name="guidance_scale" min="1" max="20" step="0.1" value="6.0" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label for="steps" class="block text-sm font-medium" data-i18n="steps">Inference Steps</label>
-                            <input type="number" id="steps" name="steps" min="1" value="50" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label for="seed" class="block text-sm font-medium" data-i18n="seed">Seed</label>
-                            <input type="number" id="seed" name="seed" min="-1" value="-1" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label for="fps" class="block text-sm font-medium" data-i18n="fps">FPS</label>
-                            <input type="number" id="fps" name="fps" min="1" value="8" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label for="height" class="block text-sm font-medium" data-i18n="height">Height</label>
-                            <input type="number" id="height" name="height" min="1" value="480" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-                        <div>
-                            <label for="width" class="block text-sm font-medium" data-i18n="width">Width</label>
-                            <input type="number" id="width" name="width" min="1" value="720" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <button type="button" id="advancedToggle" class="text-purple-400 hover:underline text-sm" data-i18n="advanced_options">Advanced Options</button>
+                        <div id="advancedOptions" class="hidden space-y-4 mt-2">
+                            <div>
+                                <label for="negative_prompt" class="block text-sm font-medium" data-i18n="negative_prompt">Negative Prompt</label>
+                                <textarea id="negative_prompt" name="negative_prompt" rows="2" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="negative_prompt_placeholder"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="guidance_scale" class="block text-sm font-medium" data-i18n="guidance_scale">Guidance Scale</label>
+                                    <input type="number" id="guidance_scale" name="guidance_scale" min="1" max="20" step="0.1" value="6.0" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label for="steps" class="block text-sm font-medium" data-i18n="steps">Inference Steps</label>
+                                    <input type="number" id="steps" name="steps" min="1" value="50" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label for="seed" class="block text-sm font-medium" data-i18n="seed">Seed</label>
+                                    <input type="number" id="seed" name="seed" min="-1" value="-1" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label for="fps" class="block text-sm font-medium" data-i18n="fps">FPS</label>
+                                    <input type="number" id="fps" name="fps" min="1" value="8" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                </div>
+                                <div>
+                                    <label for="resolution" class="block text-sm font-medium" data-i18n="resolution">Resolution</label>
+                                    <select id="resolution" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                        <option value="480x360">480x360 (360p)</option>
+                                        <option value="720x480">720x480 (480p)</option>
+                                        <option value="1280x720" selected>1280x720 (720p)</option>
+                                        <option value="1920x1080">1920x1080 (1080p)</option>
+                                        <option value="2560x1440">2560x1440 (1440p)</option>
+                                        <option value="3840x2160">3840x2160 (4K)</option>
+                                    </select>
+                                    <input type="hidden" id="height" name="height" value="720">
+                                    <input type="hidden" id="width" name="width" value="1280">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="flex justify-end">
@@ -118,8 +145,11 @@
                             <div id="progressBar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
                         </div>
                         <p class="mt-2"><strong data-i18n="message">Message:</strong> <span id="message"></span></p>
-                        <div id="downloadSection" class="mt-2 hidden">
+                        <div id="downloadSection" class="mt-4 hidden">
                             <a id="downloadLink" href="#" class="text-purple-400 hover:underline" data-i18n="download">Download Video</a>
+                            <video id="videoPreview" controls class="mt-4 w-full rounded-lg" hidden>
+                                <source id="videoSource" type="video/mp4">
+                            </video>
                         </div>
                     </div>
                 </div>
@@ -130,16 +160,15 @@
                 <div class="space-y-3 text-sm text-gray-300">
                     <p><strong data-i18n="how_to_use">How to Use:</strong></p>
                     <ul class="list-disc list-inside" data-i18n="how_to_use_list">
-                        <li>Enter a creative prompt in the "Generate Video" tab.</li>
-                        <li>Adjust options like model, frames, and seed, then click "Generate Video."</li>
-                        <li>The Job ID will auto-populate in "Job Status" and start tracking progress.</li>
-                        <li>Download your video once completed.</li>
+                        <li>Enter a prompt in the "Generate Video" tab.</li>
+                        <li>Choose a model and frames, then click "Generate Video."</li>
+                        <li>Track progress in "Job Status" automatically.</li>
+                        <li>Watch or download your video when done.</li>
                     </ul>
                     <p><strong data-i18n="tips">Tips:</strong></p>
                     <ul class="list-disc list-inside" data-i18n="tips_list">
-                        <li>Progress updates every 2 seconds during processing.</li>
-                        <li>Use negative prompts to avoid unwanted elements.</li>
-                        <li>Check the <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub repo</a> for advanced usage.</li>
+                        <li>Use advanced options for fine-tuning.</li>
+                        <li>Check <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub</a> for more.</li>
                     </ul>
                 </div>
             </div>
@@ -148,9 +177,9 @@
         <!-- Footer -->
         <footer class="text-center text-gray-400 text-sm mt-8">
             <p>Built by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub Repo</a></p>
-            <p class="mt-1">OpenVideoGen on GitHub: <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">ParisNeo/OpenVideoGen</a> (<span id="starCount">Fetching stars...</span>)</p>
-            <p class="mt-1">Explore more: <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
-            <p class="mt-1">© 2025 OpenVideoGen. All rights reserved.</p>
+            <p class="mt-1">OpenVideoGen: <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">ParisNeo/OpenVideoGen</a> (<span id="starCount">Fetching stars...</span>)</p>
+            <p class="mt-1">Explore: <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
+            <p class="mt-1">© 2025 OpenVideoGen</p>
         </footer>
     </div>
 
@@ -161,6 +190,7 @@
         // Localization data
         const translations = {
             en: {
+                settings: "Settings",
                 tagline: "Generate stunning videos with AI-powered diffusion models",
                 tab_generate: "Generate Video",
                 tab_status: "Job Status",
@@ -176,8 +206,8 @@
                 steps: "Inference Steps",
                 seed: "Seed",
                 fps: "FPS",
-                height: "Height",
-                width: "Width",
+                resolution: "Resolution",
+                advanced_options: "Advanced Options",
                 generate: "Generate Video",
                 job_id_placeholder: "Enter Job ID",
                 job_id: "Job ID:",
@@ -186,12 +216,13 @@
                 message: "Message:",
                 download: "Download Video",
                 how_to_use: "How to Use:",
-                how_to_use_list: "<li>Enter a creative prompt in the \"Generate Video\" tab.</li><li>Adjust options like model, frames, and seed, then click \"Generate Video.\"</li><li>The Job ID will auto-populate in \"Job Status\" and start tracking progress.</li><li>Download your video once completed.</li>",
+                how_to_use_list: "<li>Enter a prompt in the \"Generate Video\" tab.</li><li>Choose a model and frames, then click \"Generate Video.\"</li><li>Track progress in \"Job Status\" automatically.</li><li>Watch or download your video when done.</li>",
                 tips: "Tips:",
-                tips_list: "<li>Progress updates every 2 seconds during processing.</li><li>Use negative prompts to avoid unwanted elements.</li><li>Check the <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">GitHub repo</a> for advanced usage.</li>"
+                tips_list: "<li>Use advanced options for fine-tuning.</li><li>Check the <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">GitHub repo</a> for more.</li>"
             },
             fr: {
-                tagline: "Générez des vidéos époustouflantes avec des modèles de diffusion alimentés par IA",
+                settings: "Paramètres",
+                tagline: "Générez des vidéos époustouflantes avec des modèles de diffusion IA",
                 tab_generate: "Générer une vidéo",
                 tab_status: "Statut du travail",
                 tab_help: "Aide",
@@ -206,8 +237,8 @@
                 steps: "Étapes d'inférence",
                 seed: "Graine",
                 fps: "IPS",
-                height: "Hauteur",
-                width: "Largeur",
+                resolution: "Résolution",
+                advanced_options: "Options avancées",
                 generate: "Générer une vidéo",
                 job_id_placeholder: "Entrez l'ID du travail",
                 job_id: "ID du travail :",
@@ -216,12 +247,13 @@
                 message: "Message :",
                 download: "Télécharger la vidéo",
                 how_to_use: "Comment utiliser :",
-                how_to_use_list: "<li>Entrez une invite créative dans l'onglet \"Générer une vidéo\".</li><li>Ajustez les options comme le modèle, les images et la graine, puis cliquez sur \"Générer une vidéo.\"</li><li>L'ID du travail sera automatiquement rempli dans \"Statut du travail\" et suivra la progression.</li><li>Téléchargez votre vidéo une fois terminée.</li>",
+                how_to_use_list: "<li>Entrez une invite dans l'onglet \"Générer une vidéo\".</li><li>Choisissez un modèle et des images, puis cliquez sur \"Générer une vidéo.\"</li><li>Suivez la progression dans \"Statut du travail\" automatiquement.</li><li>Regardez ou téléchargez votre vidéo une fois terminée.</li>",
                 tips: "Conseils :",
-                tips_list: "<li>La progression est mise à jour toutes les 2 secondes pendant le traitement.</li><li>Utilisez des invites négatives pour éviter les éléments indésirables.</li><li>Consultez le <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">repo GitHub</a> pour une utilisation avancée.</li>"
+                tips_list: "<li>Utilisez les options avancées pour un réglage fin.</li><li>Consultez le <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">repo GitHub</a> pour plus.</li>"
             },
             ar: {
-                tagline: "قم بإنشاء مقاطع فيديو مذهلة باستخدام نماذج الانتشار المدعومة بالذكاء الاصطناعي",
+                settings: "الإعدادات",
+                tagline: "أنشئ مقاطع فيديو مذهلة باستخدام نماذج الانتشار بالذكاء الاصطناعي",
                 tab_generate: "إنشاء فيديو",
                 tab_status: "حالة المهمة",
                 tab_help: "مساعدة",
@@ -236,8 +268,8 @@
                 steps: "خطوات الاستنتاج",
                 seed: "البذرة",
                 fps: "إطار في الثانية",
-                height: "الارتفاع",
-                width: "العرض",
+                resolution: "الدقة",
+                advanced_options: "خيارات متقدمة",
                 generate: "إنشاء فيديو",
                 job_id_placeholder: "أدخل معرف المهمة",
                 job_id: "معرف المهمة:",
@@ -246,9 +278,9 @@
                 message: "الرسالة:",
                 download: "تنزيل الفيديو",
                 how_to_use: "كيفية الاستخدام:",
-                how_to_use_list: "<li>أدخل موجهًا إبداعيًا في علامة التبويب \"إنشاء فيديو\".</li><li>اضبط الخيارات مثل النموذج، الإطارات، والبذرة، ثم انقر على \"إنشاء فيديو\".</li><li>سيتم ملء معرف المهمة تلقائيًا في \"حالة المهمة\" وتتبع التقدم.</li><li>قم بتنزيل الفيديو بمجرد اكتماله.</li>",
+                how_to_use_list: "<li>أدخل موجهًا في علامة التبويب \"إنشاء فيديو\".</li><li>اختر نموذجًا وإطارات، ثم انقر على \"إنشاء فيديو\".</li><li>تابع التقدم في \"حالة المهمة\" تلقائيًا.</li><li>شاهد أو قم بتنزيل الفيديو عند الانتهاء.</li>",
                 tips: "نصائح:",
-                tips_list: "<li>يتم تحديث التقدم كل ثانيتين أثناء المعالجة.</li><li>استخدم الموجهات السلبية لتجنب العناصر غير المرغوب فيها.</li><li>تحقق من <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">مستودع GitHub</a> للاستخدام المتقدم.</li>"
+                tips_list: "<li>استخدم الخيارات المتقدمة للتعديل الدقيق.</li><li>تحقق من <a href=\"https://github.com/ParisNeo/OpenVideoGen\" target=\"_blank\" class=\"text-purple-400 hover:underline\">مستودع GitHub</a> للمزيد.</li>"
             }
         };
 
@@ -301,13 +333,64 @@
                 const key = el.getAttribute('data-i18n-placeholder');
                 el.placeholder = translations[lang][key] || '';
             });
-            // Update button text manually if needed
             document.querySelector('#videoForm button').textContent = translations[lang].generate;
+            document.getElementById('settingsBtn').textContent = translations[lang].settings;
+        }
+
+        // Load and save settings
+        function loadSettings() {
+            const lang = localStorage.getItem('language') || 'en';
+            document.getElementById('language').value = lang;
+            updateLanguage(lang);
+
+            const advancedFields = ['negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps', 'resolution'];
+            advancedFields.forEach(field => {
+                const value = localStorage.getItem(`settings_${field}`);
+                if (value !== null) {
+                    const el = document.getElementById(field);
+                    if (field === 'resolution') {
+                        el.value = value;
+                        updateResolution(value);
+                    } else {
+                        el.value = value;
+                    }
+                }
+            });
+        }
+
+        function saveSettings() {
+            const lang = document.getElementById('language').value;
+            localStorage.setItem('language', lang);
+
+            const advancedFields = ['negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps', 'resolution'];
+            advancedFields.forEach(field => {
+                const el = document.getElementById(field);
+                localStorage.setItem(`settings_${field}`, el.value);
+            });
+        }
+
+        // Update hidden height/width based on resolution
+        function updateResolution(value) {
+            const [width, height] = value.split('x');
+            document.getElementById('width').value = width;
+            document.getElementById('height').value = height;
         }
 
         // Handle language change
         document.getElementById('language').addEventListener('change', (e) => {
             updateLanguage(e.target.value);
+            saveSettings();
+        });
+
+        // Handle resolution change
+        document.getElementById('resolution').addEventListener('change', (e) => {
+            updateResolution(e.target.value);
+            saveSettings();
+        });
+
+        // Handle other advanced field changes
+        ['negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveSettings);
         });
 
         // Tab switching
@@ -323,6 +406,12 @@
                 contents.forEach(c => c.classList.add('hidden'));
                 document.getElementById(`content-${tab.id.split('-')[1]}`).classList.remove('hidden');
             });
+        });
+
+        // Toggle advanced options
+        document.getElementById('advancedToggle').addEventListener('click', () => {
+            const advanced = document.getElementById('advancedOptions');
+            advanced.classList.toggle('hidden');
         });
 
         // Handle form submission
@@ -344,6 +433,7 @@
                 message.classList.remove('hidden', 'text-red-400');
                 message.classList.add('text-green-400');
                 form.reset();
+                loadSettings(); // Reset form but keep saved settings
 
                 // Switch to status tab and start polling
                 document.getElementById('tab-status').click();
@@ -376,15 +466,22 @@
 
                     const downloadSection = document.getElementById('downloadSection');
                     const downloadLink = document.getElementById('downloadLink');
+                    const videoPreview = document.getElementById('videoPreview');
+                    const videoSource = document.getElementById('videoSource');
                     if (data.status === 'completed' && data.video_url) {
                         downloadLink.href = `${API_BASE_URL}${data.video_url}`;
+                        videoSource.src = `${API_BASE_URL}${data.video_url}`;
+                        videoPreview.load();
+                        videoPreview.hidden = false;
                         downloadSection.classList.remove('hidden');
                         clearInterval(pollingInterval);
                     } else if (data.status === 'failed') {
                         clearInterval(pollingInterval);
                         downloadSection.classList.add('hidden');
+                        videoPreview.hidden = true;
                     } else {
                         downloadSection.classList.add('hidden');
+                        videoPreview.hidden = true;
                     }
                 } catch (error) {
                     document.getElementById('jobId').textContent = jobId;
@@ -393,6 +490,7 @@
                     document.getElementById('progressBar').style.width = '0%';
                     document.getElementById('message').textContent = 'Job ID not found or invalid.';
                     document.getElementById('downloadSection').classList.add('hidden');
+                    document.getElementById('videoPreview').hidden = true;
                     clearInterval(pollingInterval);
                 }
             };
@@ -405,9 +503,10 @@
 
         // Load initial content
         window.addEventListener('load', () => {
-            updateLanguage('en'); // Default to English
+            loadSettings();
             loadModels();
             loadStarCount();
+            updateResolution(document.getElementById('resolution').value); // Set initial width/height
         });
     </script>
 </body>
