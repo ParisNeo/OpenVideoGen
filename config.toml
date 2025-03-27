@@ -1,0 +1,13 @@
+[models]
+cogvideox_2b = {name = "THUDM/CogVideoX-2b", type = "cogvideox"}
+cogvideox_5b = {name = "THUDM/CogVideoX-5b", type = "cogvideox"}
+stable_video = {name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo"}
+
+[settings]
+default_model = "cogvideox_2b"
+use_gpu = true
+dtype = "float16"
+output_folder = "./outputs"
+port = 8088
+host = "0.0.0.0"
+file_retention_time = 3600  # Files are deleted after 1 hour (3600 seconds)
