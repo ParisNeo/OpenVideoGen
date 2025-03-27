@@ -9,6 +9,8 @@ import subprocess
 import sys
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Response
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 from pathlib import Path
@@ -16,6 +18,7 @@ import torch
 from diffusers import CogVideoXPipeline, StableVideoDiffusionPipeline, MochiPipeline
 from diffusers.utils import export_to_video
 import toml
+from pathlib import Path
 import pipmaster as pm
 # Setup logging
 logging.basicConfig(
@@ -171,6 +174,7 @@ class MultiPromptVideoRequest(BaseModel):
 class JobStatus(BaseModel):
     job_id: str
     status: str  # "pending", "processing", "completed", "failed"
+    progress: int = 0  # New field for progress percentage
     message: Optional[str] = None
     video_url: Optional[str] = None
     created_at: float
@@ -237,6 +241,7 @@ class VideoGenService:
 
     def generate_video(self, job_id: str, request: VideoGenerationRequest) -> None:
         jobs[job_id].status = "processing"
+        jobs[job_id].progress = 0  # Add progress attribute
         model_key = request.model_name or self.default_model
         if model_key not in self.pipelines:
             jobs[job_id].status = "failed"
@@ -261,25 +266,33 @@ class VideoGenService:
         try:
             logger.info(f"Generating video for job {job_id} with {model_key}...")
             start_time = time.time()
-            
-            # Check if the model is Mochi and apply autocast
+
+            # Custom callback to update progress
+            def progress_callback(step: int, total_steps: int):
+                progress = int((step / total_steps) * 100)
+                jobs[job_id].progress = min(progress, 100)  # Cap at 100%
+                logger.debug(f"Job {job_id} progress: {jobs[job_id].progress}%")
+
+            # Check model type and generate with progress tracking
             if self.models[model_key]["type"] == "mochi":
                 with torch.autocast("cuda", dtype=torch.bfloat16, cache_enabled=False):
-                    video_frames = pipeline(**gen_params).frames[0]
+                    video_frames = pipeline(**gen_params, callback=progress_callback).frames[0]
             else:
-                video_frames = pipeline(**gen_params).frames[0]
+                video_frames = pipeline(**gen_params, callback=progress_callback).frames[0]
 
             output_filename = output_path / f"video_{job_id}.mp4"
             export_to_video(video_frames, str(output_filename), fps=request.fps)
             elapsed_time = time.time() - start_time
             logger.info(f"Video for job {job_id} generated in {elapsed_time:.2f}s at {output_filename}")
             jobs[job_id].status = "completed"
+            jobs[job_id].progress = 100  # Ensure 100% on completion
             jobs[job_id].video_url = f"/download/{job_id}"
             jobs[job_id].message = "Video generated successfully"
         except Exception as e:
             logger.error(f"Video generation for job {job_id} failed: {str(e)}")
             jobs[job_id].status = "failed"
             jobs[job_id].message = f"Video generation failed: {str(e)}"
+            jobs[job_id].progress = 0
 
     def generate_video_by_frames(self, job_id: str, request: MultiPromptVideoRequest) -> None:
         if not request.prompts or not request.frames:
@@ -404,6 +417,19 @@ async def download_video(job_id: str):
 
     return FileResponse(video_path, media_type="video/mp4", filename=f"video_{job_id}.mp4")
 
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent/"static")), name="static")
+
+# Serve the web UI
+@app.get("/webui", response_class=HTMLResponse)
+async def serve_webui():
+    try:
+        with open(str(Path(__file__).parent/"static/webui.html"), "r") as f:
+            return HTMLResponse(content=f.read(), status_code=200)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Web UI file not found")
+    
 if __name__ == "__main__":
     import uvicorn
     host = config["settings"]["host"]

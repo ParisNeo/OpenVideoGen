@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenVideoGen - Video Generation UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #9333ea);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-12 flex items-center justify-center flex-col">
+            <img src="/static/assets/openvideogen-icon.png" alt="OpenVideoGen Icon" class="w-16 h-16 mb-4">
+            <h1 class="text-4xl font-bold tracking-tight">OpenVideoGen</h1>
+            <p class="mt-2 text-lg text-gray-300">Generate stunning videos with AI-powered diffusion models</p>
+            <p class="mt-1 text-sm text-gray-400">Created by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a></p>
+        </header>
+
+        <!-- Job Submission Form -->
+        <section class="glass rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Create a Video</h2>
+            <form id="videoForm" class="space-y-4">
+                <div>
+                    <label for="prompt" class="block text-sm font-medium">Prompt</label>
+                    <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="e.g., A futuristic cityscape at sunset"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="model" class="block text-sm font-medium">Model</label>
+                        <select id="model" name="model_name" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">Select a model</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="frames" class="block text-sm font-medium">Number of Frames</label>
+                        <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Generate Video</button>
+                </div>
+            </form>
+            <p id="formMessage" class="mt-4 text-sm text-gray-300 hidden"></p>
+        </section>
+
+        <!-- Job Status -->
+        <section class="glass rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Job Status</h2>
+            <div class="space-y-4">
+                <div class="flex space-x-4">
+                    <input type="text" id="jobIdInput" class="flex-1 p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Enter Job ID">
+                    <button id="checkStatus" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">Check</button>
+                </div>
+                <div id="statusDisplay" class="text-sm text-gray-300 hidden">
+                    <p><strong>Job ID:</strong> <span id="jobId"></span></p>
+                    <p><strong>Status:</strong> <span id="status"></span></p>
+                    <p><strong>Progress:</strong> <span id="progressValue">0%</span></p>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5 mt-2">
+                        <div id="progressBar" class="bg-purple-600 h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p class="mt-2"><strong>Message:</strong> <span id="message"></span></p>
+                    <div id="downloadSection" class="mt-2 hidden">
+                        <a id="downloadLink" href="#" class="text-purple-400 hover:underline">Download Video</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Help Section -->
+        <section class="glass rounded-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Help</h2>
+            <div class="space-y-3 text-sm text-gray-300">
+                <p><strong>How to Use:</strong></p>
+                <ul class="list-disc list-inside">
+                    <li>Enter a creative prompt in the "Create a Video" section.</li>
+                    <li>Select a model or use the default, set frames, and click "Generate Video."</li>
+                    <li>Copy the Job ID and paste it in "Job Status" to track progress.</li>
+                    <li>Click "Check" to start monitoring—progress updates automatically!</li>
+                    <li>Download your video once completed.</li>
+                </ul>
+                <p><strong>Tips:</strong></p>
+                <ul class="list-disc list-inside">
+                    <li>Progress updates every 2 seconds during processing.</li>
+                    <li>Visit <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub</a> for more details.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Credits and Links -->
+        <footer class="text-center text-gray-400 text-sm">
+            <p>Built by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub Repo</a></p>
+            <p class="mt-1">OpenVideoGen on GitHub: <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">ParisNeo/OpenVideoGen</a> (<span id="starCount">Stars TBD</span>)</p>
+            <p class="mt-1">Explore more: <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
+            <p class="mt-1">© 2025 OpenVideoGen. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let pollingInterval = null;
+
+        // Populate model dropdown
+        async function loadModels() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/models`);
+                const data = await response.json();
+                const modelSelect = document.getElementById('model');
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load models:', error);
+            }
+        }
+
+        // Fetch GitHub stars (simulated)
+        async function loadStarCount() {
+            document.getElementById('starCount').textContent = 'Check repo for latest star count';
+        }
+
+        // Handle form submission
+        document.getElementById('videoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const request = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(request)
+                });
+                const data = await response.json();
+                const message = document.getElementById('formMessage');
+                message.textContent = `Job submitted! Job ID: ${data.job_id}`;
+                message.classList.remove('hidden', 'text-red-400');
+                message.classList.add('text-green-400');
+                form.reset();
+                // Auto-fill job ID and start checking
+                document.getElementById('jobIdInput').value = data.job_id;
+                checkJobStatus(data.job_id);
+            } catch (error) {
+                const message = document.getElementById('formMessage');
+                message.textContent = 'Failed to submit job. Please try again.';
+                message.classList.remove('hidden', 'text-green-400');
+                message.classList.add('text-red-400');
+            }
+        });
+
+        // Check job status with auto-polling
+        async function checkJobStatus(jobId) {
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.classList.remove('hidden');
+
+            const updateStatus = async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/status/${jobId}`);
+                    if (!response.ok) throw new Error('Job not found');
+                    const data = await response.json();
+
+                    document.getElementById('jobId').textContent = data.job_id;
+                    document.getElementById('status').textContent = data.status;
+                    document.getElementById('progressValue').textContent = `${data.progress}%`;
+                    document.getElementById('progressBar').style.width = `${data.progress}%`;
+                    document.getElementById('message').textContent = data.message || 'No message';
+
+                    const downloadSection = document.getElementById('downloadSection');
+                    const downloadLink = document.getElementById('downloadLink');
+                    if (data.status === 'completed' && data.video_url) {
+                        downloadLink.href = `${API_BASE_URL}${data.video_url}`;
+                        downloadSection.classList.remove('hidden');
+                        clearInterval(pollingInterval); // Stop polling
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollingInterval); // Stop polling on failure
+                        downloadSection.classList.add('hidden');
+                    } else {
+                        downloadSection.classList.add('hidden');
+                    }
+                } catch (error) {
+                    document.getElementById('jobId').textContent = jobId;
+                    document.getElementById('status').textContent = 'Not Found';
+                    document.getElementById('progressValue').textContent = '0%';
+                    document.getElementById('progressBar').style.width = '0%';
+                    document.getElementById('message').textContent = 'Job ID not found or invalid.';
+                    document.getElementById('downloadSection').classList.add('hidden');
+                    clearInterval(pollingInterval); // Stop polling on error
+                }
+            };
+
+            // Initial update
+            await updateStatus();
+
+            // Start polling if not already running
+            if (!pollingInterval && !['completed', 'failed'].includes(document.getElementById('status').textContent)) {
+                pollingInterval = setInterval(updateStatus, 2000); // Poll every 2 seconds
+            }
+        }
+
+        // Check status button handler
+        document.getElementById('checkStatus').addEventListener('click', () => {
+            const jobId = document.getElementById('jobIdInput').value.trim();
+            if (!jobId) {
+                alert('Please enter a Job ID');
+                return;
+            }
+            if (pollingInterval) clearInterval(pollingInterval); // Clear existing polling
+            checkJobStatus(jobId);
+        });
+
+        // Load models and star count on page load
+        window.addEventListener('load', () => {
+            loadModels();
+            loadStarCount();
+        });
+    </script>
+</body>
+</html>
