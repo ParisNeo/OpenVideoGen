@@ -1,13 +1,19 @@
 [models]
 cogvideox_2b = {name = "THUDM/CogVideoX-2b", type = "cogvideox"}
-cogvideox_5b = {name = "THUDM/CogVideoX-5b", type = "cogvideox"}
-stable_video = {name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo"}
+# cogvideox_5b = {name = "THUDM/CogVideoX-5b", type = "cogvideox"}
+# stable_video = {name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo"}
+# mochi = {name = "genmo/mochi-1-preview", type = "mochi"}
 
 [settings]
 default_model = "cogvideox_2b"
-use_gpu = true
+force_gpu = false  # Force GPU usage even if use_gpu is false
+use_gpu = true     # Use GPU if available
 dtype = "float16"
 output_folder = "./outputs"
 port = 8088
 host = "0.0.0.0"
 file_retention_time = 3600  # Files are deleted after 1 hour (3600 seconds)
+
+[generation]
+guidance_scale = 6.0
+num_inference_steps = 50

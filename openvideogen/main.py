@@ -5,17 +5,18 @@ import os
 import shutil
 import argparse
 import platform
+import subprocess
+import sys
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 from pathlib import Path
 import torch
-from diffusers import CogVideoXPipeline, StableVideoDiffusionPipeline
+from diffusers import CogVideoXPipeline, StableVideoDiffusionPipeline, MochiPipeline
 from diffusers.utils import export_to_video
 import toml
 import pipmaster as pm
-
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -27,12 +28,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("OpenVideoGen")
 
-# Install dependencies
+# Install dependencies using subprocess
 def install_dependencies():
     logger.info("Checking and installing dependencies...")
     if not pm.is_installed("torch"):
+        logger.info(f"Installing torch...")
         pm.install_multiple(["torch", "torchvision", "torchaudio"], "https://download.pytorch.org/whl/cu124")
     for package in ["diffusers", "transformers", "accelerate", "imageio-ffmpeg", "sentencepiece", "toml"]:
+        logger.info(f"Installing {package}...")
         if not pm.is_installed(package):
             pm.install(package)
     if not pm.is_version_higher("accelerate", "0.26.0"):
@@ -81,7 +84,8 @@ def load_config():
         "models": {
             "cogvideox_2b": {"name": "THUDM/CogVideoX-2b", "type": "cogvideox"},
             "cogvideox_5b": {"name": "THUDM/CogVideoX-5b", "type": "cogvideox"},
-            "stable_video": {"name": "stabilityai/stable-video-diffusion-img2vid", "type": "stablevideo"}
+            "stable_video": {"name": "stabilityai/stable-video-diffusion-img2vid", "type": "stablevideo"},
+            "mochi": {"name": "genmo/mochi-1-preview", "type": "mochi"}
         },
         "settings": {
             "default_model": "cogvideox_2b",
@@ -91,7 +95,7 @@ def load_config():
             "output_folder": "./outputs",
             "port": 8088,
             "host": "0.0.0.0",
-            "file_retention_time": 3600
+            "file_retention_time": 3600  # 1 hour in seconds
         },
         "generation": {
             "guidance_scale": 6.0,
@@ -180,15 +184,15 @@ jobs: Dict[str, JobStatus] = {}
 class VideoGenService:
     def __init__(self):
         self.models = config["models"]
-        self.default_model = config["settings"]["default_model"]
-        self.use_gpu = config["settings"]["use_gpu"] and torch.cuda.is_available()
-        self.force_gpu = config["settings"]["force_gpu"]
-        self.dtype = torch.float16 if config["settings"]["dtype"] == "float16" else torch.bfloat16
-        self.output_folder = Path(config["settings"]["output_folder"])
+        self.default_model = config["settings"].get("default_model", "cogvideox_2b")
+        self.use_gpu = config["settings"].get("use_gpu", True) and torch.cuda.is_available()
+        self.force_gpu = config["settings"].get("force_gpu", False)
+        self.dtype = torch.float16 if config["settings"].get("dtype", "float16") == "float16" else torch.bfloat16
+        self.output_folder = Path(config["settings"].get("output_folder", "./outputs"))
         self.output_folder.mkdir(exist_ok=True, parents=True)
-        self.file_retention_time = config["settings"]["file_retention_time"]
-        self.default_guidance_scale = config["generation"]["guidance_scale"]
-        self.default_num_inference_steps = config["generation"]["num_inference_steps"]
+        self.file_retention_time = config["settings"].get("file_retention_time", 3600)  # Default: 1 hour
+        self.default_guidance_scale = config["generation"].get("guidance_scale", 6.0)
+        self.default_num_inference_steps = config["generation"].get("num_inference_steps", 50)
         self.pipelines = {}
         self.load_pipelines()
 
@@ -207,6 +211,12 @@ class VideoGenService:
                     pipeline = StableVideoDiffusionPipeline.from_pretrained(
                         model_info["name"], torch_dtype=self.dtype
                     )
+                elif model_info["type"] == "mochi":
+                    pipeline = MochiPipeline.from_pretrained(
+                        model_info["name"], torch_dtype=self.dtype
+                    )
+                    # Enable memory-saving features for Mochi
+                    pipeline.enable_vae_tiling()
                 else:
                     logger.warning(f"Unsupported model type for {model_key}: {model_info['type']}")
                     continue
@@ -245,7 +255,14 @@ class VideoGenService:
         try:
             logger.info(f"Generating video for job {job_id} with {model_key}...")
             start_time = time.time()
-            video_frames = pipeline(**gen_params).frames[0]
+            
+            # Check if the model is Mochi and apply autocast
+            if self.models[model_key]["type"] == "mochi":
+                with torch.autocast("cuda", dtype=torch.bfloat16, cache_enabled=False):
+                    video_frames = pipeline(**gen_params).frames[0]
+            else:
+                video_frames = pipeline(**gen_params).frames[0]
+
             output_filename = output_path / f"video_{job_id}.mp4"
             export_to_video(video_frames, str(output_filename), fps=request.fps)
             elapsed_time = time.time() - start_time
