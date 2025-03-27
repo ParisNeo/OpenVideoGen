@@ -241,7 +241,7 @@ class VideoGenService:
 
     def generate_video(self, job_id: str, request: VideoGenerationRequest) -> None:
         jobs[job_id].status = "processing"
-        jobs[job_id].progress = 0  # Add progress attribute
+        jobs[job_id].progress = 0  # Initialize progress
         model_key = request.model_name or self.default_model
         if model_key not in self.pipelines:
             jobs[job_id].status = "failed"
@@ -267,18 +267,23 @@ class VideoGenService:
             logger.info(f"Generating video for job {job_id} with {model_key}...")
             start_time = time.time()
 
-            # Custom callback to update progress
-            def progress_callback(step: int, total_steps: int):
-                progress = int((step / total_steps) * 100)
+            # Define the callback function for progress tracking
+            def step_callback(pipeline, step: int, timestep: int, callback_kwargs: dict):
+                total_steps = gen_params["num_inference_steps"]
+                progress = int((step + 1) / total_steps * 100)  # +1 because step starts at 0
                 jobs[job_id].progress = min(progress, 100)  # Cap at 100%
-                logger.debug(f"Job {job_id} progress: {jobs[job_id].progress}%")
+                logger.debug(f"Job {job_id} progress: {jobs[job_id].progress}% at step {step + 1}/{total_steps}")
+                return callback_kwargs  # Must return callback_kwargs
 
-            # Check model type and generate with progress tracking
+            # Add callback to generation parameters
+            gen_params["callback_on_step_end"] = step_callback
+
+            # Generate video based on model type
             if self.models[model_key]["type"] == "mochi":
                 with torch.autocast("cuda", dtype=torch.bfloat16, cache_enabled=False):
-                    video_frames = pipeline(**gen_params, callback=progress_callback).frames[0]
+                    video_frames = pipeline(**gen_params).frames[0]
             else:
-                video_frames = pipeline(**gen_params, callback=progress_callback).frames[0]
+                video_frames = pipeline(**gen_params).frames[0]
 
             output_filename = output_path / f"video_{job_id}.mp4"
             export_to_video(video_frames, str(output_filename), fps=request.fps)
