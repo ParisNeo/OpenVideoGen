@@ -155,7 +155,6 @@ class VideoGenerationRequest(BaseModel):
     seed: int = -1
     nb_frames: int = 49
     fps: int = 8
-    output_folder: Optional[str] = None
 
 class MultiPromptVideoRequest(BaseModel):
     prompts: List[str]
@@ -166,7 +165,6 @@ class MultiPromptVideoRequest(BaseModel):
     num_inference_steps: Optional[int] = None  # Override num_inference_steps
     guidance_scale: Optional[float] = None  # Override guidance_scale
     seed: Optional[int] = None
-    output_folder: Optional[str] = None
 
 # Job status model
 class JobStatus(BaseModel):
@@ -191,7 +189,7 @@ class VideoGenService:
         self.output_folder = Path(config["settings"].get("output_folder", "./outputs"))
         self.output_folder.mkdir(exist_ok=True, parents=True)
         self.file_retention_time = config["settings"].get("file_retention_time", 3600)  # Default: 1 hour
-        self.default_guidance_scale = config["generation"].get("guidance_scale", 6.0)
+        self.default_guidance_scale = config["generation"].get("guidance_scale", 6)
         self.default_num_inference_steps = config["generation"].get("num_inference_steps", 50)
         self.pipelines = {}
         self.load_pipelines()
@@ -238,7 +236,7 @@ class VideoGenService:
             return
 
         pipeline = self.pipelines[model_key]
-        output_path = Path(request.output_folder) if request.output_folder else self.output_folder
+        output_path = self.output_folder
         output_path.mkdir(exist_ok=True, parents=True)
 
         gen_params = {
