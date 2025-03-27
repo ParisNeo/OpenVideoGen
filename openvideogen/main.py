@@ -20,6 +20,8 @@ from diffusers.utils import export_to_video
 import toml
 from pathlib import Path
 import pipmaster as pm
+if not pm.is_installed("opencv-python"):
+    pm.install("opencv-python")
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
