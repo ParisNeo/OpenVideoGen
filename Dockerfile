@@ -1,4 +1,4 @@
-# Use an official Python runtime as a parent image
+# Use an official Python 3.11 runtime as a parent image
 FROM python:3.11-slim
 
 # Set working directory
