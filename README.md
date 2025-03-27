@@ -8,7 +8,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/release/python-311/)
 [![GitHub stars](https://img.shields.io/github/stars/ParisNeo/OpenVideoGen?style=social)](https://github.com/ParisNeo/OpenVideoGen/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ParisNeo/OpenVideoGen)](https://github.com/ParisNeo/OpenVideoGen/issues)
-[![Discord](https://img.shields.io/discord/1818856788?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/yourserverlinkhere)
+[![Discord](https://img.shields.io/discord/1818856788?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.com/channels/1354804454549094420)
 
 Open source video generation API using various diffusion models.
 
