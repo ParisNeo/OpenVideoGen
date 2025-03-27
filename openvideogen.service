@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenVideoGen FastAPI Service
+After=network.target
+
+[Service]
+User=your-username
+WorkingDirectory=/path/to/OpenVideoGen
+ExecStart=/path/to/venv/bin/uvicorn openvideogen.main:app --host 0.0.0.0 --port 8088
+Restart=always
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target
