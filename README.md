@@ -26,7 +26,7 @@ Open source video generation API using various diffusion models.
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.11 or higher
 - CUDA-enabled GPU (optional but recommended for faster generation)
 
 ### Install via pip
