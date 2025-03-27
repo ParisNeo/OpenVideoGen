@@ -1,7 +1,7 @@
 # OpenVideoGen
 
 <div align="center">
-  <img src="https://github.com/ParisNeo/OpenVideoGen/blob/main/assets/logo.png" alt="Logo" width="200" height="200">
+  <img src="https://github.com/ParisNeo/OpenVideoGen/blob/main/assets/icon.png" alt="Logo" width="200" height="200">
 </div>
 
 [![License](https://img.shields.io/github/license/ParisNeo/OpenVideoGen)](https://github.com/ParisNeo/OpenVideoGen/blob/main/LICENSE)
