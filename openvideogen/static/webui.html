@@ -78,6 +78,13 @@
         .settings-btn:hover svg {
             transform: rotate(90deg);
         }
+        .prompt-history {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -134,7 +141,7 @@
                         <label for="resolution" class="block text-sm font-medium" data-i18n="resolution">Resolution</label>
                         <select id="resolution" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="480x360">480x360 (360p)</option>
-                            <option value="848x480">480x360 (360p)</option>
+                            <option value="848x480">848x480 (480p)</option>
                             <option value="720x480">720x480 (480p)</option>
                             <option value="1280x720" selected>1280x720 (720p)</option>
                             <option value="1920x1080">1920x1080 (1080p)</option>
@@ -174,6 +181,12 @@
                         <label for="prompt" class="block text-sm font-medium" data-i18n="prompt">Prompt</label>
                         <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_placeholder"></textarea>
                     </div>
+                    <div>
+                        <label for="promptHistory" class="block text-sm font-medium" data-i18n="prompt_history">Prompt History</label>
+                        <select id="promptHistory" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">Select a previous prompt</option>
+                        </select>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="model" class="block text-sm font-medium" data-i18n="model">Model</label>
@@ -186,7 +199,7 @@
                             <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
-                    <div class="flex justify-end">
+                    <div class="flex justify-end space-x-4">
                         <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg" data-i18n="generate">Generate Video</button>
                     </div>
                 </form>
@@ -198,6 +211,7 @@
                 <div class="space-y-6">
                     <div class="flex space-x-4">
                         <input type="text" id="jobIdInput" class="flex-1 p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="job_id_placeholder">
+                        <button id="checkStatusBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg" data-i18n="check_status">Check Status</button>
                     </div>
                     <div id="statusDisplay" class="text-sm text-gray-300 hidden">
                         <p><strong data-i18n="job_id">Job ID:</strong> <span id="jobId"></span></p>
@@ -257,6 +271,7 @@
                 tab_help: "Help",
                 prompt: "Prompt",
                 prompt_placeholder: "e.g., A futuristic cityscape at sunset",
+                prompt_history: "Prompt History",
                 negative_prompt: "Negative Prompt",
                 negative_prompt_placeholder: "e.g., blurry, low quality",
                 model: "Model",
@@ -268,6 +283,7 @@
                 fps: "FPS",
                 resolution: "Resolution",
                 generate: "Generate Video",
+                check_status: "Check Status",
                 job_id_placeholder: "Enter Job ID",
                 job_id: "Job ID:",
                 status: "Status:",
@@ -288,6 +304,7 @@
                 tab_help: "Aide",
                 prompt: "Invite",
                 prompt_placeholder: "ex., Un paysage urbain futuriste au coucher du soleil",
+                prompt_history: "Historique des invites",
                 negative_prompt: "Invite négative",
                 negative_prompt_placeholder: "ex., flou, basse qualité",
                 model: "Modèle",
@@ -299,6 +316,7 @@
                 fps: "IPS",
                 resolution: "Résolution",
                 generate: "Générer une vidéo",
+                check_status: "Vérifier le statut",
                 job_id_placeholder: "Entrez l'ID du travail",
                 job_id: "ID du travail :",
                 status: "Statut :",
@@ -319,6 +337,7 @@
                 tab_help: "مساعدة",
                 prompt: "الموجه",
                 prompt_placeholder: "مثال: مدينة مستقبلية عند غروب الشمس",
+                prompt_history: "تاريخ الموجهات",
                 negative_prompt: "الموجه السلبي",
                 negative_prompt_placeholder: "مثال: ضبابي، جودة منخفضة",
                 model: "النموذج",
@@ -330,6 +349,7 @@
                 fps: "إطار في الثانية",
                 resolution: "الدقة",
                 generate: "إنشاء فيديو",
+                check_status: "تحقق من الحالة",
                 job_id_placeholder: "أدخل معرف المهمة",
                 job_id: "معرف المهمة:",
                 status: "الحالة:",
@@ -382,6 +402,7 @@
             });
             document.querySelector('#videoForm button').textContent = translations[lang].generate;
             document.getElementById('closeSettings').textContent = translations[lang].close;
+            document.getElementById('checkStatusBtn').textContent = translations[lang].check_status;
         }
 
         // Load and save settings
@@ -403,6 +424,14 @@
                     }
                 }
             });
+
+            const jobId = localStorage.getItem('lastJobId');
+            if (jobId) {
+                document.getElementById('jobIdInput').value = jobId;
+                checkJobStatus(jobId);
+            }
+
+            loadPromptHistory();
         }
 
         function saveSettings() {
@@ -413,6 +442,29 @@
             advancedFields.forEach(field => {
                 const el = document.getElementById(field);
                 localStorage.setItem(`settings_${field}`, el.value);
+            });
+        }
+
+        // Prompt history management
+        function savePrompt(prompt) {
+            let prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+            if (!prompts.includes(prompt)) {
+                prompts.unshift(prompt);
+                if (prompts.length > 10) prompts.pop(); // Limit to 10 prompts
+                localStorage.setItem('promptHistory', JSON.stringify(prompts));
+            }
+            loadPromptHistory();
+        }
+
+        function loadPromptHistory() {
+            const prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+            const promptHistory = document.getElementById('promptHistory');
+            promptHistory.innerHTML = '<option value="">Select a previous prompt</option>';
+            prompts.forEach(prompt => {
+                const option = document.createElement('option');
+                option.value = prompt;
+                option.textContent = prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
+                promptHistory.appendChild(option);
             });
         }
 
@@ -433,6 +485,13 @@
         document.getElementById('resolution').addEventListener('change', (e) => {
             updateResolution(e.target.value);
             saveSettings();
+        });
+
+        // Handle prompt history selection
+        document.getElementById('promptHistory').addEventListener('change', (e) => {
+            if (e.target.value) {
+                document.getElementById('prompt').value = e.target.value;
+            }
         });
 
         // Handle other advanced field changes
@@ -478,6 +537,8 @@
                 formData.append(field, document.getElementById(field).value);
             });
             const request = Object.fromEntries(formData);
+            const prompt = request.prompt;
+            savePrompt(prompt);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/submit`, {
@@ -493,7 +554,8 @@
                 form.reset();
                 loadSettings(); // Reset form but keep saved settings
 
-                // Switch to status tab and start polling
+                // Save Job ID and switch to status tab
+                localStorage.setItem('lastJobId', data.job_id);
                 document.getElementById('tab-status').click();
                 document.getElementById('jobIdInput').value = data.job_id;
                 checkJobStatus(data.job_id);
@@ -533,10 +595,12 @@
                         videoPreview.hidden = false;
                         downloadSection.classList.remove('hidden');
                         clearInterval(pollingInterval);
+                        localStorage.removeItem('lastJobId');
                     } else if (data.status === 'failed') {
                         clearInterval(pollingInterval);
                         downloadSection.classList.add('hidden');
                         videoPreview.hidden = true;
+                        localStorage.removeItem('lastJobId');
                     } else {
                         downloadSection.classList.add('hidden');
                         videoPreview.hidden = true;
@@ -550,6 +614,7 @@
                     document.getElementById('downloadSection').classList.add('hidden');
                     document.getElementById('videoPreview').hidden = true;
                     clearInterval(pollingInterval);
+                    localStorage.removeItem('lastJobId');
                 }
             };
 
@@ -558,6 +623,15 @@
                 pollingInterval = setInterval(updateStatus, 2000);
             }
         }
+
+        // Manual status check
+        document.getElementById('checkStatusBtn').addEventListener('click', () => {
+            const jobId = document.getElementById('jobIdInput').value;
+            if (jobId) {
+                localStorage.setItem('lastJobId', jobId);
+                checkJobStatus(jobId);
+            }
+        });
 
         // Load initial content
         window.addEventListener('load', () => {
