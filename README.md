@@ -54,6 +54,14 @@ Install dependencies:
 pip install .
 ```
 
+Install ffmpeg:
+### On ubuntu
+```bash
+sudo apt install ffmpeg
+```
+### On windows
+Download and install ffmpeg from its site 
+
 ## Usage
 
 ### Run the API
