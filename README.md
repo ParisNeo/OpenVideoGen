@@ -1,4 +1,4 @@
-# OpenVideoGen
+<img src="assets/icon.png" alt="OpenVideoGen Logo" width="32"/> OpenVideoGen
 
 [![License](https://img.shields.io/github/license/ParisNeo/OpenVideoGen)](https://github.com/ParisNeo/OpenVideoGen/blob/main/LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/release/python-311/)
