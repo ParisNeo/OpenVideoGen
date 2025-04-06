@@ -2,7 +2,7 @@ fastapi
 uvicorn
 pydantic
 torch
-diffusers
+git+https://github.com/huggingface/diffusers
 transformers
 accelerate
 imageio-ffmpeg
