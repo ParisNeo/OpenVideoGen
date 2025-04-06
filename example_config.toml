@@ -1,20 +1,41 @@
+# OpenVideoGen Configuration File
+
 [settings]
-default_model = "cogvideox_2b"
-force_gpu = false
-use_gpu = true
-dtype = "float16"
-output_folder = "./outputs"
-model_cache_dir = "./models"  # Custom path for model storage
-port = 8088
-host = "0.0.0.0"
-file_retention_time = 3600
+# --- General API Settings ---
+default_model = "wan_1_3b"  # Model used if 'model_name' is not specified in the request
+force_gpu = false             # If true, requires a GPU and errors out if none is found
+use_gpu = true                # If true, attempts to use GPU if available, otherwise falls back to CPU (unless force_gpu is true)
+dtype = "float16"             # Data type for model inference ("float16" or "bfloat16"). bfloat16 might require newer GPUs/torch versions.
+output_folder = "./outputs"   # Directory to save generated videos
+model_cache_dir = "./models"  # Custom path for storing downloaded Hugging Face models
+port = 8088                   # Network port the API server will listen on
+host = "0.0.0.0"              # Host address to bind the server to ("0.0.0.0" listens on all interfaces)
+file_retention_time = 3600    # Time in seconds to keep generated video files before cleanup (3600s = 1 hour)
 
 [generation]
-guidance_scale = 6.0
-num_inference_steps = 50
+# --- Default Video Generation Parameters ---
+# These can be overridden in individual API requests
+guidance_scale = 6.0          # Default guidance scale (higher values follow prompt more strictly, potentially less creative)
+num_inference_steps = 50      # Default number of diffusion steps (more steps take longer but can improve quality)
+
+# --- Model-Specific Defaults (Example for Wan, add others if needed) ---
+# These are used if not provided in the request AND the specific model type is selected
+# wan_default_height = 480
+# wan_default_width = 832
+# wan_default_num_frames = 81
+# wan_default_fps = 15
+# wan_default_guidance_scale = 5.0
 
 [models]
+# --- Available Model Definitions ---
+# The key (e.g., "cogvideox_2b") is the identifier used in API requests ('model_name').
+# 'name' is the Hugging Face repository ID.
+# 'type' tells the script how to load and use the model ("cogvideox", "stablevideo", "mochi", "wan").
+
 cogvideox_2b = { name = "THUDM/CogVideoX-2b", type = "cogvideox" }
 cogvideox_5b = { name = "THUDM/CogVideoX-5b", type = "cogvideox" }
 stable_video = { name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo" }
 mochi = { name = "genmo/mochi-1-preview", type = "mochi" }
+
+# --- Wan Model (Example - Add back if you want to use it) ---
+wan_1_3b = { name = "Wan-AI/Wan2.1-T2V-1.3B-Diffusers", type = "wan" }
