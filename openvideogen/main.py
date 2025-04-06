@@ -508,13 +508,12 @@ class VideoGenService:
 
         try:
             # Define the callback function for progress tracking
-            def step_callback(step: int, timestep: int, latents: torch.Tensor):
-                 # Note: Diffusers callback signature can vary slightly. This is a common one.
-                 # Adjust if pipeline expects different args.
-                 total_steps = gen_params["num_inference_steps"]
-                 progress = int(((step + 1) / total_steps) * 95) # Cap progress from steps at 95%
-                 jobs[job_id].progress = min(progress, 95)
-                 # logger.debug(f"Job {job_id} progress: {jobs[job_id].progress}% at step {step + 1}/{total_steps}") # Too verbose for INFO
+            def step_callback(pipeline, step: int, timestep: int, callback_kwargs: dict):
+                total_steps = gen_params["num_inference_steps"]
+                progress = int((step + 1) / total_steps * 100)  # +1 because step starts at 0
+                jobs[job_id].progress = min(progress, 100)  # Cap at 100%
+                logger.debug(f"Job {job_id} progress: {jobs[job_id].progress}% at step {step + 1}/{total_steps}")
+                return callback_kwargs  # Must return callback_kwargs
 
             # Add callback if the pipeline supports it (check documentation or wrap call)
             # Not all pipelines guarantee 'callback_steps' or 'callback' argument.
@@ -538,7 +537,7 @@ class VideoGenService:
                  )
 
             with autocast_context:
-                if hasattr(pipeline, '__call__') and 'callback' in pipeline.__call__.__code__.co_varnames:
+                if hasattr(pipeline, '__call__') and 'callback_on_step_end' in pipeline.__call__.__code__.co_varnames:
                      output = pipeline(**gen_params_with_callback)
                 else:
                     # Fallback if callback args aren't directly supported in __call__
