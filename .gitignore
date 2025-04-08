@@ -175,3 +175,4 @@ cython_debug/
 config.toml
 outputs/
 models/
+model_cache/
