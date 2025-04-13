@@ -1,5 +1,9 @@
-
 # -*- coding: utf-8 -*-
+#
+# File: openvideogen/__init__.py
+# Author: parisneo
+# Description: Initialization file for the OpenVideoGen package.
+# Date: 10/04/2025
 #
 # Copyright (C) 2025 ParisNeo
 #
@@ -18,10 +22,10 @@
 """Open Source Video Generation API"""
 
 __author__ = "ParisNeo"
-__copyright__ = "Copyright 2024, ParisNeo"
+__copyright__ = "Copyright 2025, ParisNeo"
 __credits__ = ["ParisNeo"]
 __license__ = "Apache 2.0"
-__version__ = "0.2.0" # <-- ADD THIS LINE (or your current version)
+__version__ = "0.3.0" # <-- Updated Version for I2V support
 __maintainer__ = "ParisNeo"
 __email__ = "parisneo_ai@gmail.com"
 __status__ = "Development" # Or "Production", "Alpha", etc.

@@ -8,81 +8,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
     <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #1e3a8a, #9333ea, #4f46e5);
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            color: #e5e7eb;
-        }
-        [lang="ar"] body {
-            font-family: 'Noto Sans Arabic', sans-serif;
-            direction: rtl;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            border-radius: 1rem;
-        }
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
-            transition: all 0.3s ease;
-        }
-        .top-bar:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        #settingsModal {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        #settingsModal.show {
-            display: flex;
-            opacity: 1;
-        }
-        #settingsModal .glass {
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-        }
-        #settingsModal.show .glass {
-            transform: scale(1);
-        }
-        button, select, input, textarea {
-            transition: all 0.2s ease;
-        }
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        select:hover, input:hover, textarea:hover {
-            border-color: #a855f7;
-        }
-        .tab-btn {
-            transition: all 0.3s ease;
-        }
-        .tab-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        #progressBar {
-            transition: width 0.5s ease;
-        }
-        .settings-btn svg {
-            transition: transform 0.2s ease;
-        }
-        .settings-btn:hover svg {
-            transform: rotate(90deg);
-        }
-        /* Scrollbar styling for prompt history */
-        #promptHistory {
-             /* Optional: Style scrollbar if needed */
-        }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #1e3a8a, #9333ea, #4f46e5); min-height: 100vh; margin: 0; padding: 0; color: #e5e7eb; }
+        [lang="ar"] body { font-family: 'Noto Sans Arabic', sans-serif; direction: rtl; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); border-radius: 1rem; }
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 10; transition: all 0.3s ease; }
+        .top-bar:hover { background: rgba(255, 255, 255, 0.1); }
+        #settingsModal { display: none; opacity: 0; transition: opacity 0.2s ease; }
+        #settingsModal.show { display: flex; opacity: 1; }
+        #settingsModal .glass { transform: scale(0.95); transition: transform 0.3s ease; }
+        #settingsModal.show .glass { transform: scale(1); }
+        button, select, input, textarea { transition: all 0.2s ease; }
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        select:hover, input:hover, textarea:hover { border-color: #a855f7; }
+        .tab-btn { transition: all 0.3s ease; }
+        .tab-btn:hover { background: rgba(255, 255, 255, 0.05); }
+        .tab-btn.active { color: #a855f7; border-bottom: 2px solid #9333ea; }
+        #progressBar { transition: width 0.5s ease; }
+        .settings-btn svg { transition: transform 0.2s ease; }
+        .settings-btn:hover svg { transform: rotate(90deg); }
+        #imagePreview { max-height: 200px; object-fit: contain; }
+        input[type="file"]::-webkit-file-upload-button, input[type="file"]::file-selector-button { background: #6b21a8; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s ease; margin-inline-end: 0.5rem; }
+        input[type="file"]::-webkit-file-upload-button:hover, input[type="file"]::file-selector-button:hover { background: #7e22ce; }
+        .status-waiting { color: #fbbf24; /* Amber */}
+        .status-loading { color: #38bdf8; /* Sky blue */}
+        .status-processing { color: #60a5fa; /* Blue */}
+        .status-completed { color: #22c55e; /* Green */}
+        .status-failed { color: #f87171; /* Red */}
+        .status-pending { color: #9ca3af; /* Gray */}
     </style>
 </head>
 <body>
@@ -102,10 +54,7 @@
                 <img src="https://img.shields.io/github/stars/ParisNeo/OpenVideoGen.svg?style=social&label=Stars" alt="GitHub Stars" class="h-5">
             </a>
             <button id="settingsBtn" class="settings-btn bg-purple-700 hover:bg-purple-800 text-white p-2 rounded-lg" aria-label="Open Settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- SVG Icon -->
-                    <path d="M19.14,12.94a2,2,0,0,0-.14-.68l1.78-1a1,1,0,0,0,.36-1.16l-2-3.46a1,1,0,0,0-1.14-.46l-2.07.83a7.25,7.25,0,0,0-1.2-.55l-.32-2.25a1,1,0,0,0-1-.94H9.56a1,1,0,0,0-1,.94l-.32,2.25a7.25,7.25,0,0,0-1.2.55L5,6.49a1,1,0,0,0-1.14.46l-2,3.46a1,1,0,0,0,.36,1.16l1.78,1a2,2,0,0,0-.14.68,2,2,0,0,0,.14.68l-1.78,1a1,1,0,0,0-.36,1.16l2,3.46a1,1,0,0,0,1.14.46l2.07-.83a7.25,7.25,0,0,0,1.2.55l.32,2.25a1,1,0,0,0,1,.94h4.88a1,1,0,0,0,1-.94l.32-2.25a7.25,7.25,0,0,0,1.2-.55l2.07.83a1,1,0,0,0,1.14-.46l2-3.46a1,1,0,0,0-.36-1.16ZM12,15a3,3,0,1,1,3-3A3,3,0,0,1,12,15Z" fill="#fff"/>
-                </svg>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.14,12.94a2,2,0,0,0-.14-.68l1.78-1a1,1,0,0,0,.36-1.16l-2-3.46a1,1,0,0,0-1.14-.46l-2.07.83a7.25,7.25,0,0,0-1.2-.55l-.32-2.25a1,1,0,0,0-1-.94H9.56a1,1,0,0,0-1,.94l-.32,2.25a7.25,7.25,0,0,0-1.2.55L5,6.49a1,1,0,0,0-1.14.46l-2,3.46a1,1,0,0,0,.36,1.16l1.78,1a2,2,0,0,0-.14.68,2,2,0,0,0,.14.68l-1.78,1a1,1,0,0,0-.36,1.16l2,3.46a1,1,0,0,0,1.14.46l2.07-.83a7.25,7.25,0,0,0,1.2.55l.32,2.25a1,1,0,0,0,1,.94h4.88a1,1,0,0,0,1-.94l.32-2.25a7.25,7.25,0,0,0,1.2-.55l2.07.83a1,1,0,0,0,1.14-.46l2-3.46a1,1,0,0,0-.36-1.16ZM12,15a3,3,0,1,1,3-3A3,3,0,0,1,12,15Z" fill="#fff"/></svg>
             </button>
         </div>
     </div>
@@ -116,13 +65,15 @@
             <h2 class="text-2xl font-semibold mb-6" data-i18n="settings">Settings</h2>
             <div class="space-y-6">
                 <div>
-                    <label for="negative_prompt" class="block text-sm font-medium" data-i18n="negative_prompt">Negative Prompt</label>
+                    <label for="negative_prompt" class="block text-sm font-medium" data-i18n="negative_prompt">Negative Prompt (T2V)</label>
                     <textarea id="negative_prompt" name="negative_prompt" rows="2" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="negative_prompt_placeholder"></textarea>
+                    <p class="text-xs text-gray-400 mt-1" data-i18n="neg_prompt_note">Mainly used for Text-to-Video models.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="guidance_scale" class="block text-sm font-medium" data-i18n="guidance_scale">Guidance Scale</label>
+                        <label for="guidance_scale" class="block text-sm font-medium" data-i18n="guidance_scale">Guidance Scale (T2V)</label>
                         <input type="number" id="guidance_scale" name="guidance_scale" min="1" max="20" step="0.1" value="6.0" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <p class="text-xs text-gray-400 mt-1" data-i18n="guidance_note">Adjusts prompt adherence (T2V).</p>
                     </div>
                     <div>
                         <label for="steps" class="block text-sm font-medium" data-i18n="steps">Inference Steps</label>
@@ -136,22 +87,35 @@
                         <label for="fps" class="block text-sm font-medium" data-i18n="fps">FPS</label>
                         <input type="number" id="fps" name="fps" min="1" value="8" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
-                    <div class="md:col-span-2"> <!-- Make resolution span full width on medium screens -->
-                        <label for="resolution" class="block text-sm font-medium" data-i18n="resolution">Resolution</label>
+                    <div class="md:col-span-2">
+                        <label for="resolution" class="block text-sm font-medium" data-i18n="resolution">Resolution (W x H)</label>
                         <select id="resolution" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <!-- Options populated dynamically or kept static -->
-                            <option value="480x360">480x360 (360p)</option>
-                            <option value="720x480">720x480 (480p Wide)</option>
-                            <option value="832x480">832x480 (Wan 480p)</option>
-                            <option value="848x480">848x480 (480p)</option>
-                            <option value="1280x720" selected>1280x720 (720p)</option>
+                            <option value="832x480">832x480 (Wan Default)</option>
+                            <option value="1024x576">1024x576 (SVD Default)</option>
+                            <option value="704x480">704x480 (LTX Default)</option>
+                            <option value="512x512">512x512 (AnimateDiff Default)</option>
+                            <option value="768x768">768x768 (Mochi Default)</option>
+                            <option value="1280x720">1280x720 (720p)</option>
                             <option value="1920x1080">1920x1080 (1080p)</option>
-                            <option value="2560x1440">2560x1440 (1440p)</option>
-                            <option value="3840x2160">3840x2160 (4K)</option>
+                            <option value="" data-i18n="custom_resolution">Custom (Set in Main UI if needed)</option>
                         </select>
-                        <!-- Hidden inputs to store parsed width/height -->
-                        <input type="hidden" id="height" name="height" value="720">
-                        <input type="hidden" id="width" name="width" value="1280">
+                        <input type="hidden" id="width" name="width" value="1024">
+                        <input type="hidden" id="height" name="height" value="576">
+                    </div>
+                    <div class="md:col-span-2 border-t border-gray-700 pt-4 mt-4">
+                        <p class="text-sm font-semibold mb-2" data-i18n="i2v_settings">Image-to-Video Settings (e.g., SVD)</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                               <label for="motion_bucket_id" class="block text-sm font-medium" data-i18n="motion_bucket_id">Motion Bucket ID</label>
+                               <input type="number" id="motion_bucket_id" name="motion_bucket_id" min="0" max="255" value="127" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                               <p class="text-xs text-gray-400 mt-1" data-i18n="motion_note">Controls amount of motion (SVD).</p>
+                           </div>
+                            <div>
+                               <label for="noise_aug_strength" class="block text-sm font-medium" data-i18n="noise_aug_strength">Noise Aug Strength</label>
+                               <input type="number" id="noise_aug_strength" name="noise_aug_strength" min="0" max="1" step="0.01" value="0.02" class="mt-1 w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                               <p class="text-xs text-gray-400 mt-1" data-i18n="noise_note">Amount of noise added to input (SVD).</p>
+                           </div>
+                       </div>
                     </div>
                 </div>
             </div>
@@ -161,24 +125,25 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-6 pt-20 pb-12 max-w-5xl"> <!-- Added pt-20 for top bar clearance -->
-        <!-- Header -->
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 pt-20 pb-12 max-w-5xl">
         <header class="text-center mb-12">
-            <p class="text-xl text-gray-200 font-medium" data-i18n="tagline">Generate stunning videos with AI-powered diffusion models</p>
+            <p class="text-xl text-gray-200 font-medium" data-i18n="tagline">Generate stunning videos from text or images</p>
             <p class="mt-2 text-sm text-gray-400">Created by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a></p>
         </header>
 
         <!-- Tabs -->
         <div class="glass p-6">
             <div class="flex border-b border-gray-700">
-                <button id="tab-generate" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-purple-400 border-b-2 border-purple-600" data-i18n="tab_generate">Generate Video</button>
-                <button id="tab-status" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-gray-300" data-i18n="tab_status">Job Status</button>
-                <button id="tab-help" class="tab-btn flex-1 py-3 px-4 text-center font-semibold text-gray-300" data-i18n="tab_help">Help</button>
+                <button id="tab-generate-t2v" class="tab-btn flex-1 py-3 px-4 text-center font-semibold active" data-i18n="tab_generate_t2v">Text to Video</button>
+                <button id="tab-generate-i2v" class="tab-btn flex-1 py-3 px-4 text-center font-semibold" data-i18n="tab_generate_i2v">Image to Video</button>
+                <button id="tab-status" class="tab-btn flex-1 py-3 px-4 text-center font-semibold" data-i18n="tab_status">Job Status</button>
+                <button id="tab-help" class="tab-btn flex-1 py-3 px-4 text-center font-semibold" data-i18n="tab_help">Help</button>
             </div>
 
-            <!-- Generate Video Tab -->
-            <div id="content-generate" class="tab-content mt-6">
-                <form id="videoForm" class="space-y-6">
+            <!-- Text to Video Tab -->
+            <div id="content-generate-t2v" class="tab-content mt-6">
+                <form id="t2vForm" class="space-y-6">
                     <div>
                         <label for="prompt" class="block text-sm font-medium" data-i18n="prompt">Prompt</label>
                         <textarea id="prompt" name="prompt" rows="3" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_placeholder"></textarea>
@@ -187,27 +152,58 @@
                         <label for="promptHistory" class="block text-sm font-medium" data-i18n="prompt_history">Prompt History</label>
                         <select id="promptHistory" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                             <option value="" data-i18n="select_prompt_history">Select a previous prompt</option>
-                            <!-- History options populated by JS -->
                         </select>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="model" class="block text-sm font-medium" data-i18n="model">Model</label>
-                            <select id="model" name="model_name" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <label for="t2v_model" class="block text-sm font-medium" data-i18n="model">Model</label>
+                            <select id="t2v_model" name="model_name" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <option value="" data-i18n="loading_models">Loading models...</option>
-                                <!-- Model options populated by JS -->
                             </select>
                         </div>
                         <div>
-                            <label for="frames" class="block text-sm font-medium" data-i18n="frames">Number of Frames</label>
-                            <input type="number" id="frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <label for="t2v_frames" class="block text-sm font-medium" data-i18n="frames">Number of Frames</label>
+                            <input type="number" id="t2v_frames" name="nb_frames" min="1" value="49" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
                     <div class="flex justify-end space-x-4">
-                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg" data-i18n="generate">Generate Video</button>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-lg" data-i18n="generate_t2v">Generate T2V</button>
                     </div>
                 </form>
-                <p id="formMessage" class="mt-4 text-sm text-gray-300 hidden"></p>
+                <p id="t2vFormMessage" class="mt-4 text-sm text-gray-300 hidden"></p>
+            </div>
+
+            <!-- Image to Video Tab -->
+            <div id="content-generate-i2v" class="tab-content mt-6 hidden">
+                <form id="i2vForm" class="space-y-6">
+                    <div>
+                        <label for="imageUpload" class="block text-sm font-medium mb-1" data-i18n="image_upload">Upload Image</label>
+                        <input type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/webp" required class="w-full p-2 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-700 file:text-white hover:file:bg-purple-800">
+                        <img id="imagePreview" src="#" alt="Image Preview" class="mt-4 rounded-lg shadow-md hidden mx-auto"/>
+                    </div>
+                     <div>
+                        <label for="i2v_prompt" class="block text-sm font-medium" data-i18n="prompt_optional">Prompt (Optional)</label>
+                        <textarea id="i2v_prompt" name="prompt" rows="2" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500" data-i18n-placeholder="prompt_optional_placeholder"></textarea>
+                         <p class="text-xs text-gray-400 mt-1" data-i18n="prompt_optional_note">Used by some I2V models for conditioning.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="i2v_model" class="block text-sm font-medium" data-i18n="model">Model</label>
+                            <select id="i2v_model" name="model_name" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="" data-i18n="loading_models">Loading models...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="i2v_frames" class="block text-sm font-medium" data-i18n="frames">Number of Frames</label>
+                            <input type="number" id="i2v_frames" name="nb_frames" min="1" value="25" class="mt-1 w-full p-4 rounded-lg bg-gray-900 text-white border border-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                             <p class="text-xs text-gray-400 mt-1" data-i18n="frames_note">May be fixed by some models (e.g., SVD).</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-8 rounded-lg" data-i18n="generate_i2v">Generate I2V</button>
+                    </div>
+                </form>
+                 <p id="i2vFormMessage" class="mt-4 text-sm text-gray-300 hidden"></p>
             </div>
 
             <!-- Job Status Tab -->
@@ -219,7 +215,7 @@
                     </div>
                     <div id="statusDisplay" class="text-sm text-gray-300 hidden">
                         <p><strong data-i18n="job_id">Job ID:</strong> <span id="jobId"></span></p>
-                        <p><strong data-i18n="status">Status:</strong> <span id="status"></span></p>
+                        <p><strong data-i18n="status">Status:</strong> <span id="status" class="font-semibold"></span></p> <!-- Added font-semibold for visibility -->
                         <p><strong data-i18n="progress">Progress:</strong> <span id="progressValue">0%</span></p>
                         <div class="w-full bg-gray-800 rounded-full h-3 mt-2">
                             <div id="progressBar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-3 rounded-full" style="width: 0%"></div>
@@ -238,23 +234,20 @@
 
             <!-- Help Tab -->
             <div id="content-help" class="tab-content mt-6 hidden">
-                <div class="space-y-4 text-sm text-gray-300">
+                 <div class="space-y-4 text-sm text-gray-300">
                     <p><strong data-i18n="how_to_use">How to Use:</strong></p>
-                    <ul class="list-disc list-inside space-y-1" data-i18n="how_to_use_list">
-                        <!-- Content filled by JS -->
-                    </ul>
+                    <ul class="list-disc list-inside space-y-1" data-i18n="how_to_use_list"></ul>
                     <p><strong data-i18n="tips">Tips:</strong></p>
-                    <ul class="list-disc list-inside space-y-1" data-i18n="tips_list">
-                         <!-- Content filled by JS -->
-                    </ul>
-                     <p class="mt-4"><strong data-i18n="api_docs_link">API Documentation:</strong> <a href="/docs" target="_blank" class="text-purple-400 hover:underline">/docs</a></p>
+                    <ul class="list-disc list-inside space-y-1" data-i18n="tips_list"></ul>
+                    <p class="mt-4"><strong data-i18n="api_docs_link">API Documentation:</strong> <a href="/docs" target="_blank" class="text-purple-400 hover:underline">/docs</a></p>
+                    <p class="mt-4"><strong data-i18n="report_issue">Report an Issue:</strong> <a href="https://github.com/ParisNeo/OpenVideoGen/issues" target="_blank" class="text-purple-400 hover:underline">GitHub Issues</a></p>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
         <footer class="text-center text-gray-400 text-sm mt-12">
-            <p>© 2025 OpenVideoGen by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub</a> | <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
+             <p>© 2025 OpenVideoGen by <a href="https://github.com/ParisNeo" target="_blank" class="text-purple-400 hover:underline">ParisNeo</a> | <a href="https://github.com/ParisNeo/OpenVideoGen" target="_blank" class="text-purple-400 hover:underline">GitHub</a> | Inspired by <a href="https://github.com/ParisNeo/lollms-webui" target="_blank" class="text-purple-400 hover:underline">LoLLMs WebUI</a></p>
         </footer>
     </div>
 
@@ -262,13 +255,19 @@
         // --- Configuration ---
         const API_BASE_URL = window.location.origin;
         const PROMPT_HISTORY_LIMIT = 15;
-        const POLLING_INTERVAL_MS = 2500; // Check status every 2.5 seconds
+        const POLLING_INTERVAL_MS = 2500;
 
         // --- State ---
         let pollingInterval = null;
-        const settingFields = ['language', 'negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps', 'resolution', 'model', 'frames']; // Include model & frames now
+        // Fields managed by save/loadSettings loops (using element ID as suffix)
+        const settingFields = [
+            'language', 'negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps',
+            'resolution', 'motion_bucket_id', 'noise_aug_strength',
+            't2v_model', 'i2v_model', 't2v_frames', 'i2v_frames' // Added persistent fields
+         ];
+        let availableModels = [];
 
-        // --- DOM Elements (Cache frequently used elements) ---
+        // --- DOM Elements ---
         const domElements = {
             languageSelect: document.getElementById('language'),
             settingsModal: document.getElementById('settingsModal'),
@@ -276,15 +275,33 @@
             closeSettingsBtn: document.getElementById('closeSettings'),
             tabs: document.querySelectorAll('.tab-btn'),
             contents: document.querySelectorAll('.tab-content'),
-            videoForm: document.getElementById('videoForm'),
+            // T2V Form
+            t2vForm: document.getElementById('t2vForm'),
             promptInput: document.getElementById('prompt'),
             promptHistorySelect: document.getElementById('promptHistory'),
-            modelSelect: document.getElementById('model'),
-            framesInput: document.getElementById('frames'),
+            t2vModelSelect: document.getElementById('t2v_model'),
+            t2vFramesInput: document.getElementById('t2v_frames'),
+            t2vFormMessage: document.getElementById('t2vFormMessage'),
+            // I2V Form
+            i2vForm: document.getElementById('i2vForm'),
+            imageUploadInput: document.getElementById('imageUpload'),
+            imagePreview: document.getElementById('imagePreview'),
+            i2vModelSelect: document.getElementById('i2v_model'),
+            i2vFramesInput: document.getElementById('i2v_frames'),
+            i2vPromptInput: document.getElementById('i2v_prompt'),
+            i2vFormMessage: document.getElementById('i2vFormMessage'),
+            // Shared Settings Inputs (in modal OR referenced directly)
             resolutionSelect: document.getElementById('resolution'),
             widthInput: document.getElementById('width'),
             heightInput: document.getElementById('height'),
-            formMessage: document.getElementById('formMessage'),
+            negativePromptInput: document.getElementById('negative_prompt'),
+            guidanceScaleInput: document.getElementById('guidance_scale'),
+            stepsInput: document.getElementById('steps'),
+            seedInput: document.getElementById('seed'),
+            fpsInput: document.getElementById('fps'),
+            motionBucketIdInput: document.getElementById('motion_bucket_id'),
+            noiseAugStrengthInput: document.getElementById('noise_aug_strength'),
+            // Status Tab
             jobIdInput: document.getElementById('jobIdInput'),
             checkStatusBtn: document.getElementById('checkStatusBtn'),
             statusDisplay: document.getElementById('statusDisplay'),
@@ -302,636 +319,649 @@
 
         // --- Localization Data ---
         const translations = {
-            // ... (Keep your existing translations object) ...
-            en: {
-                settings: "Settings", close: "Close", tagline: "Generate stunning videos with AI-powered diffusion models",
-                tab_generate: "Generate Video", tab_status: "Job Status", tab_help: "Help",
-                prompt: "Prompt", prompt_placeholder: "e.g., A futuristic cityscape at sunset, hyperrealistic, 4k",
-                prompt_history: "Prompt History", select_prompt_history: "Select a previous prompt",
-                negative_prompt: "Negative Prompt", negative_prompt_placeholder: "e.g., blurry, low quality, text, watermark",
-                model: "Model", loading_models: "Loading models...", select_model: "Select a model",
-                frames: "Number of Frames", guidance_scale: "Guidance Scale", steps: "Inference Steps",
-                seed: "Seed", fps: "FPS", resolution: "Resolution",
-                generate: "Generate Video", check_status: "Check Status", job_id_placeholder: "Enter Job ID",
-                job_id: "Job ID:", status: "Status:", progress: "Progress:", message: "Message:",
-                download: "Download", preview: "Preview",
-                how_to_use: "How to Use:",
-                how_to_use_list: `<li>Enter a detailed description (prompt) for your video.</li>
-                                  <li>Select a generation model (check model info for strengths).</li>
-                                  <li>Use the settings (⚙️ icon top-right) to adjust negative prompts, steps, FPS, resolution, etc. Settings are saved automatically.</li>
-                                  <li>Click "Generate Video". Your Job ID will appear.</li>
-                                  <li>Switch to the "Job Status" tab to track progress.</li>
-                                  <li>Download or preview the video when completed.</li>`,
-                tips: "Tips:",
-                tips_list: `<li>Use the prompt history dropdown to quickly reuse past prompts.</li>
-                            <li>Experiment with different models and settings. Higher steps usually mean better quality but longer generation.</li>
-                            <li>A good negative prompt helps avoid unwanted elements.</li>
-                            <li>For API usage, check the documentation link below.</li>`,
-                api_docs_link: "API Documentation:"
-            },
-            fr: { // Example - Add full translations
-                settings: "Paramètres", close: "Fermer", tagline: "Générez des vidéos époustouflantes avec des modèles de diffusion IA",
-                tab_generate: "Générer Vidéo", tab_status: "Statut Tâche", tab_help: "Aide",
-                prompt: "Invite", prompt_placeholder: "ex., Paysage urbain futuriste au coucher du soleil, hyperréaliste, 4k",
-                prompt_history: "Historique", select_prompt_history: "Choisir une invite précédente",
-                negative_prompt: "Invite Négative", negative_prompt_placeholder: "ex., flou, basse qualité, texte",
-                model: "Modèle", loading_models: "Chargement...", select_model: "Choisir un modèle",
-                frames: "Nb Images", guidance_scale: "Échelle Guidage", steps: "Étapes Inférence",
-                seed: "Graine", fps: "IPS", resolution: "Résolution",
-                generate: "Générer Vidéo", check_status: "Vérifier Statut", job_id_placeholder: "Entrez l'ID",
-                job_id: "ID Tâche:", status: "Statut:", progress: "Progrès:", message: "Message:",
+             en: {
+                 settings: "Settings", close: "Close", tagline: "Generate stunning videos from text or images",
+                 tab_generate_t2v: "Text to Video", tab_generate_i2v: "Image to Video",
+                 tab_status: "Job Status", tab_help: "Help",
+                 prompt: "Prompt", prompt_placeholder: "e.g., A futuristic cityscape at sunset, hyperrealistic, 4k",
+                 prompt_history: "Prompt History", select_prompt_history: "Select a previous prompt",
+                 negative_prompt: "Negative Prompt (T2V)", negative_prompt_placeholder: "e.g., blurry, low quality, text, watermark",
+                 neg_prompt_note: "Mainly used for Text-to-Video models.",
+                 model: "Model", loading_models: "Loading models...", select_model: "Select a model",
+                 frames: "Number of Frames", guidance_scale: "Guidance Scale (T2V)", steps: "Inference Steps",
+                 guidance_note: "Adjusts prompt adherence (T2V).",
+                 seed: "Seed", fps: "FPS", resolution: "Resolution (W x H)", custom_resolution: "Custom (Set in Main UI)",
+                 generate_t2v: "Generate T2V", generate_i2v: "Generate I2V",
+                 check_status: "Check Status", job_id_placeholder: "Enter Job ID",
+                 job_id: "Job ID:", status: "Status:", progress: "Progress:", message: "Message:",
+                 download: "Download", preview: "Preview",
+                 image_upload: "Upload Image", image_preview_alt: "Image Preview",
+                 prompt_optional: "Prompt (Optional)", prompt_optional_placeholder: "e.g., enhance details, add style",
+                 prompt_optional_note: "Used by some I2V models for conditioning.",
+                 frames_note: "May be fixed by some models (e.g., SVD).",
+                 i2v_settings: "Image-to-Video Settings (e.g., SVD)",
+                 motion_bucket_id: "Motion Bucket ID", motion_note: "Controls amount of motion (SVD).",
+                 noise_aug_strength: "Noise Aug Strength", noise_note: "Amount of noise added to input (SVD).",
+                 how_to_use: "How to Use:",
+                 how_to_use_list: `<li>Select task: Text-to-Video or Image-to-Video.</li>
+                                   <li><strong>T2V:</strong> Enter prompt, select T2V model, set frames.</li>
+                                   <li><strong>I2V:</strong> Upload image, select I2V model, optionally add prompt, set frames.</li>
+                                   <li>Use Settings (⚙️) for advanced options. Settings are saved.</li>
+                                   <li>Click "Generate". Note the Job ID.</li>
+                                   <li>Track progress in "Job Status". Statuses like "loading model" or "waiting for resources" may appear.</li>
+                                   <li>Download/preview when complete.</li>`,
+                 tips: "Tips:",
+                 tips_list: `<li>Use prompt history (T2V).</li>
+                             <li>Experiment with models/settings. Unloaded models will be loaded on demand.</li>
+                             <li>Negative prompts (T2V) help avoid unwanted elements.</li>
+                             <li>Check model docs for optimal parameters (resolution, motion etc.).</li>
+                             <li>API docs at /docs.</li>`,
+                 api_docs_link: "API Documentation:", report_issue: "Report an Issue:"
+             },
+             fr: { /* Add full FR translations here */
+                settings: "Paramètres", close: "Fermer", tagline: "Générez des vidéos époustouflantes à partir de texte ou d'images",
+                tab_generate_t2v: "Texte en Vidéo", tab_generate_i2v: "Image en Vidéo",
+                tab_status: "État du Travail", tab_help: "Aide",
+                prompt: "Invite", prompt_placeholder: "ex: Une ville futuriste au coucher du soleil, hyperréaliste, 4k",
+                prompt_history: "Historique des invites", select_prompt_history: "Sélectionner une invite précédente",
+                negative_prompt: "Invite Négative (T2V)", negative_prompt_placeholder: "ex: flou, basse qualité, texte, filigrane",
+                neg_prompt_note: "Principalement utilisé pour les modèles Texte-en-Vidéo.",
+                model: "Modèle", loading_models: "Chargement des modèles...", select_model: "Sélectionner un modèle",
+                frames: "Nombre d'images", guidance_scale: "Échelle de Guidage (T2V)", steps: "Étapes d'Inférence",
+                guidance_note: "Ajuste l'adhérence à l'invite (T2V).",
+                seed: "Graine", fps: "IPS", resolution: "Résolution (L x H)", custom_resolution: "Personnalisé (Définir dans l'UI)",
+                generate_t2v: "Générer T2V", generate_i2v: "Générer I2V",
+                check_status: "Vérifier l'état", job_id_placeholder: "Entrez l'ID du travail",
+                job_id: "ID du travail:", status: "État:", progress: "Progression:", message: "Message:",
                 download: "Télécharger", preview: "Aperçu",
+                image_upload: "Télécharger une image", image_preview_alt: "Aperçu de l'image",
+                prompt_optional: "Invite (Optionnel)", prompt_optional_placeholder: "ex: améliorer les détails, ajouter du style",
+                prompt_optional_note: "Utilisé par certains modèles I2V pour le conditionnement.",
+                frames_note: "Peut être fixe pour certains modèles (ex: SVD).",
+                i2v_settings: "Paramètres Image-en-Vidéo (ex: SVD)",
+                motion_bucket_id: "ID du Seau de Mouvement", motion_note: "Contrôle la quantité de mouvement (SVD).",
+                noise_aug_strength: "Force d'Augmentation du Bruit", noise_note: "Quantité de bruit ajoutée à l'entrée (SVD).",
                 how_to_use: "Comment utiliser :",
-                how_to_use_list: `<li>Entrez une description (invite) détaillée.</li>
-                                  <li>Sélectionnez un modèle.</li>
-                                  <li>Utilisez les paramètres (⚙️) pour ajuster. Ils sont sauvegardés.</li>
-                                  <li>Cliquez sur "Générer Vidéo".</li>
-                                  <li>Suivez la progression dans l'onglet "Statut Tâche".</li>
-                                  <li>Téléchargez ou prévisualisez quand c'est prêt.</li>`,
+                how_to_use_list: `<li>Sélectionnez la tâche : Texte-en-Vidéo ou Image-en-Vidéo.</li>
+                                  <li><strong>T2V :</strong> Entrez l'invite, sélectionnez le modèle T2V, définissez le nombre d'images.</li>
+                                  <li><strong>I2V :</strong> Téléchargez l'image, sélectionnez le modèle I2V, ajoutez éventuellement une invite, définissez le nombre d'images.</li>
+                                  <li>Utilisez les Paramètres (⚙️) pour les options avancées. Les paramètres sont sauvegardés.</li>
+                                  <li>Cliquez sur "Générer". Notez l'ID du travail.</li>
+                                  <li>Suivez la progression dans "État du Travail". Des statuts comme "chargement du modèle" ou "en attente de ressources" peuvent apparaître.</li>
+                                  <li>Téléchargez/prévisualisez une fois terminé.</li>`,
                 tips: "Conseils :",
-                tips_list: `<li>Utilisez l'historique des invites.</li>
-                            <li>Expérimentez avec les modèles et paramètres.</li>
-                            <li>Une bonne invite négative améliore le résultat.</li>
-                            <li>Pour l'API, voir la documentation ci-dessous.</li>`,
-                api_docs_link: "Documentation API :"
-            },
-             ar: { // Example - Add full translations
-                settings: "الإعدادات", close: "إغلاق", tagline: "أنشئ فيديوهات مذهلة بنماذج الانتشار بالذكاء الاصطناعي",
-                tab_generate: "إنشاء فيديو", tab_status: "حالة المهمة", tab_help: "مساعدة",
-                prompt: "الموجه", prompt_placeholder: "مثال: مدينة مستقبلية عند الغروب، واقعية فائقة، 4k",
-                prompt_history: "سجل الموجهات", select_prompt_history: "اختر موجهًا سابقًا",
-                negative_prompt: "الموجه السلبي", negative_prompt_placeholder: "مثال: ضبابي، جودة منخفضة، نص",
-                model: "النموذج", loading_models: "جاري التحميل...", select_model: "اختر نموذجًا",
-                frames: "عدد الإطارات", guidance_scale: "مقياس التوجيه", steps: "خطوات الاستدلال",
-                seed: "البذرة", fps: "إطار/ث", resolution: "الدقة",
-                generate: "إنشاء فيديو", check_status: "تحقق من الحالة", job_id_placeholder: "أدخل معرف المهمة",
-                job_id: "معرف المهمة:", status: "الحالة:", progress: "التقدم:", message: "الرسالة:",
-                download: "تنزيل", preview: "معاينة",
-                how_to_use: "كيفية الاستخدام:",
-                how_to_use_list: `<li>أدخل وصفًا تفصيليًا (موجهًا).</li>
-                                  <li>اختر نموذج التوليد.</li>
-                                  <li>استخدم الإعدادات (⚙️) للتعديل. يتم حفظها تلقائيًا.</li>
-                                  <li>انقر "إنشاء فيديو".</li>
-                                  <li>تابع التقدم في تبويب "حالة المهمة".</li>
-                                  <li>قم بالتنزيل أو المعاينة عند الانتهاء.</li>`,
-                tips: "نصائح:",
-                tips_list: `<li>استخدم سجل الموجهات لإعادة الاستخدام.</li>
-                            <li>جرب نماذج وإعدادات مختلفة.</li>
-                            <li>الموجه السلبي الجيد يحسن النتائج.</li>
-                            <li>لاستخدام الواجهة البرمجية، انظر رابط التوثيق أدناه.</li>`,
-                api_docs_link: "توثيق الواجهة البرمجية:"
-            }
+                tips_list: `<li>Utilisez l'historique des invites (T2V).</li>
+                            <li>Expérimentez avec les modèles/paramètres. Les modèles non chargés le seront à la demande.</li>
+                            <li>Les invites négatives (T2V) aident à éviter les éléments indésirables.</li>
+                            <li>Vérifiez la documentation du modèle pour les paramètres optimaux (résolution, mouvement, etc.).</li>
+                            <li>Documentation API sur /docs.</li>`,
+                api_docs_link: "Documentation API :", report_issue: "Signaler un problème :"
+             },
+             ar: { /* Add full AR translations here */
+                 settings: "الإعدادات", close: "إغلاق", tagline: "أنشئ مقاطع فيديو مذهلة من النصوص أو الصور",
+                 tab_generate_t2v: "نص إلى فيديو", tab_generate_i2v: "صورة إلى فيديو",
+                 tab_status: "حالة المهمة", tab_help: "مساعدة",
+                 prompt: "موجه الأوامر (Prompt)", prompt_placeholder: "مثال: منظر مدينة مستقبلي عند غروب الشمس، واقعي جداً، 4k",
+                 prompt_history: "سجل الموجهات", select_prompt_history: "اختر موجهًا سابقًا",
+                 negative_prompt: "الموجه السلبي (T2V)", negative_prompt_placeholder: "مثال: ضبابي، جودة منخفضة، نص، علامة مائية",
+                 neg_prompt_note: "يستخدم بشكل أساسي لنماذج تحويل النص إلى فيديو.",
+                 model: "النموذج", loading_models: "جارٍ تحميل النماذج...", select_model: "اختر نموذجًا",
+                 frames: "عدد الإطارات", guidance_scale: "مقياس التوجيه (T2V)", steps: "خطوات الاستدلال",
+                 guidance_note: "يضبط مدى الالتزام بالموجه (T2V).",
+                 seed: "البذرة (Seed)", fps: "إطار في الثانية", resolution: "الدقة (عرض × ارتفاع)", custom_resolution: "مخصص (يحدد في الواجهة الرئيسية)",
+                 generate_t2v: "إنشاء T2V", generate_i2v: "إنشاء I2V",
+                 check_status: "التحقق من الحالة", job_id_placeholder: "أدخل معرف المهمة",
+                 job_id: "معرف المهمة:", status: "الحالة:", progress: "التقدم:", message: "الرسالة:",
+                 download: "تنزيل", preview: "معاينة",
+                 image_upload: "رفع صورة", image_preview_alt: "معاينة الصورة",
+                 prompt_optional: "موجه (اختياري)", prompt_optional_placeholder: "مثال: تحسين التفاصيل، إضافة نمط",
+                 prompt_optional_note: "تستخدمه بعض نماذج I2V للتحكم.",
+                 frames_note: "قد يكون ثابتًا لبعض النماذج (مثل SVD).",
+                 i2v_settings: "إعدادات صورة إلى فيديو (مثل SVD)",
+                 motion_bucket_id: "معرف دلو الحركة", motion_note: "يتحكم في مقدار الحركة (SVD).",
+                 noise_aug_strength: "قوة زيادة الضوضاء", noise_note: "مقدار الضوضاء المضافة إلى الإدخال (SVD).",
+                 how_to_use: "كيفية الاستخدام:",
+                 how_to_use_list: `<li>اختر المهمة: نص إلى فيديو أو صورة إلى فيديو.</li>
+                                   <li><strong>T2V:</strong> أدخل الموجه، اختر نموذج T2V، حدد عدد الإطارات.</li>
+                                   <li><strong>I2V:</strong> ارفع الصورة، اختر نموذج I2V، أضف موجهًا اختياريًا، حدد عدد الإطارات.</li>
+                                   <li>استخدم الإعدادات (⚙️) للخيارات المتقدمة. يتم حفظ الإعدادات.</li>
+                                   <li>انقر فوق "إنشاء". لاحظ معرف المهمة.</li>
+                                   <li>تابع التقدم في "حالة المهمة". قد تظهر حالات مثل "جارٍ تحميل النموذج" أو "في انتظار الموارد".</li>
+                                   <li>قم بالتنزيل/المعاينة عند الاكتمال.</li>`,
+                 tips: "نصائح:",
+                 tips_list: `<li>استخدم سجل الموجهات (T2V).</li>
+                             <li>جرب نماذج وإعدادات مختلفة. سيتم تحميل النماذج غير المحملة عند الطلب.</li>
+                             <li>الموجهات السلبية (T2V) تساعد في تجنب العناصر غير المرغوب فيها.</li>
+                             <li>تحقق من وثائق النموذج للحصول على المعلمات المثلى (الدقة، الحركة، إلخ).</li>
+                             <li>وثائق API في /docs.</li>`,
+                 api_docs_link: "وثائق API:", report_issue: "الإبلاغ عن مشكلة:"
+             }
         };
-
 
         // --- Core Functions ---
 
-        // Populate model dropdown
         async function loadModels() {
             try {
                 const response = await fetch(`${API_BASE_URL}/models`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-
-                domElements.modelSelect.innerHTML = ''; // Clear loading/existing options
-
-                // Add a default "Select" option
-                const defaultOption = document.createElement('option');
-                defaultOption.value = "";
-                defaultOption.textContent = translations[domElements.languageSelect.value]?.select_model || "Select a model";
-                defaultOption.disabled = true; // Make it unselectable unless it's the only option
-                domElements.modelSelect.appendChild(defaultOption);
-
-                if (data.models && data.models.length > 0) {
-                    defaultOption.disabled = false; // Allow selection if other models exist
-                    data.models.forEach(modelInfo => {
-                        const option = document.createElement('option');
-                        option.value = modelInfo.id; // Use the model key/id
-                        option.textContent = `${modelInfo.id} (${modelInfo.type || 'N/A'}) ${modelInfo.loaded ? '' : '(Not Loaded)'}`;
-                        option.disabled = !modelInfo.loaded; // Disable if not loaded
-                        if (!modelInfo.loaded) {
-                           option.style.color = '#9ca3af'; // Gray out unloaded models
-                        }
-                        domElements.modelSelect.appendChild(option);
-                    });
-                     // After loading models, try to restore the saved selection
-                    const savedModel = localStorage.getItem('settings_model');
-                    if (savedModel && domElements.modelSelect.querySelector(`option[value="${savedModel}"]`)) {
-                        domElements.modelSelect.value = savedModel;
-                    } else if (domElements.modelSelect.options.length > 1) {
-                        // Select the first *loaded* model if no saved one is found or valid
-                        let firstLoaded = Array.from(domElements.modelSelect.options).find(opt => opt.value && !opt.disabled);
-                         if(firstLoaded) domElements.modelSelect.value = firstLoaded.value;
-                         else domElements.modelSelect.value = ""; // Fallback to default "Select" if none loaded
-                    } else {
-                         domElements.modelSelect.value = ""; // Fallback if only default exists
-                    }
-
-                } else {
-                    defaultOption.textContent = "No models found";
-                    domElements.modelSelect.disabled = true;
-                }
-
-
+                availableModels = data.models || [];
+                populateModelDropdowns();
             } catch (error) {
                 console.error('Failed to load models:', error);
-                domElements.modelSelect.innerHTML = '<option value="">Error loading models</option>';
-                 domElements.modelSelect.disabled = true;
+                availableModels = [];
+                populateModelDropdowns(); // Update UI even on error
             }
         }
 
-        // Localization function
-        function updateLanguage(lang) {
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            const elements = document.querySelectorAll('[data-i18n]');
-            elements.forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                const translation = translations[lang]?.[key];
-                if (translation) {
-                    // Handle specific elements like lists separately if needed
-                     if (el.tagName === 'UL') {
-                        el.innerHTML = translation; // Assumes translation includes <li> tags
-                    } else {
-                        el.textContent = translation;
-                    }
-                } else {
-                    // Fallback or keep original text if translation missing
-                    // console.warn(`Missing translation for key: ${key} in lang: ${lang}`);
-                }
-            });
-            const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
-            placeholders.forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                 el.placeholder = translations[lang]?.[key] || '';
-            });
+        function populateModelDropdowns() {
+            const t2vSelect = domElements.t2vModelSelect;
+            const i2vSelect = domElements.i2vModelSelect;
+            t2vSelect.innerHTML = ''; i2vSelect.innerHTML = ''; // Clear existing
 
-             // Update dynamic button texts (already done for some, ensure all are covered)
-            domElements.videoForm.querySelector('button[type="submit"]').textContent = translations[lang]?.generate || 'Generate Video';
-            domElements.closeSettingsBtn.textContent = translations[lang]?.close || 'Close';
-            domElements.checkStatusBtn.textContent = translations[lang]?.check_status || 'Check Status';
-            domElements.downloadLink.textContent = translations[lang]?.download || 'Download';
-            domElements.previewBtn.textContent = translations[lang]?.preview || 'Preview';
+            const defaultOption = (selectElement, hasModels) => {
+                 const opt = document.createElement('option');
+                 opt.value = "";
+                 const currentLang = domElements.languageSelect.value;
+                 opt.textContent = hasModels ? (translations[currentLang]?.select_model || "Select a model") : (translations[currentLang]?.loading_models || "Loading models..."); // Show loading initially
+                 opt.disabled = !hasModels; // Disable if no models eventually load
+                 selectElement.appendChild(opt);
+                 return opt;
+            };
+
+            const t2vDefaultOpt = defaultOption(t2vSelect, false); // Start disabled
+            const i2vDefaultOpt = defaultOption(i2vSelect, false); // Start disabled
+
+            let hasT2V = false;
+            let hasI2V = false;
+
+            if (availableModels.length > 0) {
+                availableModels.forEach(modelInfo => {
+                    const option = document.createElement('option');
+                    option.value = modelInfo.id;
+                    // Display "(Not Loaded)" if needed, but DO NOT disable the option
+                    option.textContent = `${modelInfo.id} ${modelInfo.loaded ? '' : '(Not Loaded)'}`;
+                    // option.disabled = !modelInfo.loaded; // REMOVED - Allow selecting unloaded models
+
+                    if (modelInfo.task === "Text-to-Video") {
+                        t2vSelect.appendChild(option.cloneNode(true));
+                        hasT2V = true;
+                    } else if (modelInfo.task === "Image-to-Video") {
+                        i2vSelect.appendChild(option.cloneNode(true));
+                        hasI2V = true;
+                    }
+                });
+            }
+
+             // Update default option text and state now that models are processed
+            const currentLang = domElements.languageSelect.value;
+            t2vDefaultOpt.textContent = hasT2V ? (translations[currentLang]?.select_model || "Select a model") : "No T2V models found";
+            t2vDefaultOpt.disabled = !hasT2V;
+            i2vDefaultOpt.textContent = hasI2V ? (translations[currentLang]?.select_model || "Select a model") : "No I2V models found";
+            i2vDefaultOpt.disabled = !hasI2V;
+
+            // Restore saved selection AFTER options are populated
+            // Uses the generic loadSettings loop now.
+
         }
 
-        // --- Persistence Functions ---
+        // Localization function (remains the same)
+        function updateLanguage(lang) {
+             document.documentElement.lang = lang;
+             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+             document.querySelectorAll('[data-i18n]').forEach(el => {
+                 const key = el.getAttribute('data-i18n');
+                 const translation = translations[lang]?.[key];
+                 if (translation) {
+                     if (el.tagName === 'UL') el.innerHTML = translation;
+                     else el.textContent = translation;
+                 } else if (lang !== 'en' && translations.en?.[key]) { // Fallback to English if translation missing
+                     if (el.tagName === 'UL') el.innerHTML = translations.en[key];
+                     else el.textContent = translations.en[key];
+                 }
+             });
+             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                 const key = el.getAttribute('data-i18n-placeholder');
+                 el.placeholder = translations[lang]?.[key] || translations.en?.[key] || '';
+             });
+              document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+                  const key = el.getAttribute('data-i18n-alt');
+                  el.alt = translations[lang]?.[key] || translations.en?.[key] || '';
+              });
+             // Update dynamic elements like button text etc.
+            domElements.t2vForm.querySelector('button[type="submit"]').textContent = translations[lang]?.generate_t2v || translations.en.generate_t2v;
+            domElements.i2vForm.querySelector('button[type="submit"]').textContent = translations[lang]?.generate_i2v || translations.en.generate_i2v;
+            domElements.closeSettingsBtn.textContent = translations[lang]?.close || translations.en.close;
+            domElements.checkStatusBtn.textContent = translations[lang]?.check_status || translations.en.check_status;
+            domElements.downloadLink.textContent = translations[lang]?.download || translations.en.download;
+            domElements.previewBtn.textContent = translations[lang]?.preview || translations.en.preview;
+             // Refresh dropdown prompts
+             const defaultT2VText = translations[lang]?.select_model || translations.en.select_model;
+             const loadingText = translations[lang]?.loading_models || translations.en.loading_models;
+             const defaultI2VText = translations[lang]?.select_model || translations.en.select_model;
+             const defaultHistoryText = translations[lang]?.select_prompt_history || translations.en.select_prompt_history;
 
+             if(domElements.t2vModelSelect.options[0]) domElements.t2vModelSelect.options[0].textContent = domElements.t2vModelSelect.options.length > 1 ? defaultT2VText : loadingText;
+             if(domElements.i2vModelSelect.options[0]) domElements.i2vModelSelect.options[0].textContent = domElements.i2vModelSelect.options.length > 1 ? defaultI2VText : loadingText;
+             if(domElements.promptHistorySelect.options[0]) domElements.promptHistorySelect.options[0].textContent = defaultHistoryText;
+        }
+
+        // --- Persistence ---
         function loadSettings() {
-            // Language first
             const lang = localStorage.getItem('language') || 'en';
             domElements.languageSelect.value = lang;
-            updateLanguage(lang); // Apply loaded language
+            updateLanguage(lang); // Apply language first
 
-            // Load other settings
-            settingFields.forEach(fieldId => {
-                // Skip language as it's handled above
-                if (fieldId === 'language') return;
+            // Load other settings using the settingFields array
+            settingFields.forEach(fieldSuffix => {
+                 // Skip language as it's handled above
+                if (fieldSuffix === 'language') return;
 
-                const value = localStorage.getItem(`settings_${fieldId}`);
-                const element = document.getElementById(fieldId); // Get element inside loop
+                const storageKey = `settings_${fieldSuffix}`;
+                const value = localStorage.getItem(storageKey);
+                const element = document.getElementById(fieldSuffix); // Assumes element ID matches suffix
 
                 if (element && value !== null) {
                     try {
-                        if (fieldId === 'resolution') {
+                        if (fieldSuffix === 'resolution') {
                             element.value = value;
                             updateResolution(value); // Update hidden inputs
                         } else {
                             element.value = value;
                         }
+                         // console.log(`Loaded ${storageKey}: ${value}`); // Keep for debugging if needed
                     } catch (e) {
-                        console.error(`Error applying saved setting for ${fieldId}:`, e);
+                        console.error(`Error applying saved setting for ${fieldSuffix}:`, e);
                     }
                 }
             });
 
-            // Load last job ID
             const jobId = localStorage.getItem('lastJobId');
             if (jobId) {
                 domElements.jobIdInput.value = jobId;
-                checkJobStatus(jobId); // Attempt to check status on load
+                checkJobStatus(jobId); // Attempt check on load
             }
-
-            // Load prompt history
             loadPromptHistory();
         }
 
         function saveSettings() {
-            // Save language
-            localStorage.setItem('language', domElements.languageSelect.value);
-
-            // Save other fields
-            settingFields.forEach(fieldId => {
-                 if (fieldId === 'language') return; // Skip language
-
-                const element = document.getElementById(fieldId);
-                if (element) {
-                    localStorage.setItem(`settings_${fieldId}`, element.value);
-                     // Special handling for resolution to update hidden fields when saved via modal
-                     if (fieldId === 'resolution') {
-                         updateResolution(element.value);
-                     }
-                }
+            // Save settings using the settingFields array
+            settingFields.forEach(fieldSuffix => {
+                 const storageKey = `settings_${fieldSuffix}`;
+                 const element = document.getElementById(fieldSuffix); // Assumes element ID matches suffix
+                 if (element) {
+                     localStorage.setItem(storageKey, element.value);
+                      // Special handling for resolution to update hidden fields
+                      if (fieldSuffix === 'resolution') {
+                          updateResolution(element.value);
+                      }
+                 }
             });
-             console.log("Settings saved to localStorage");
+             // console.log("Settings saved to localStorage"); // Keep for debugging if needed
         }
 
         // Prompt history management
         function savePrompt(prompt) {
-            if (!prompt || !prompt.trim()) return; // Don't save empty prompts
-
-            let prompts = [];
-            try {
-                prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]');
-            } catch (e) {
-                console.error("Error parsing prompt history:", e);
-                prompts = []; // Reset if invalid JSON
-            }
-
-            // Remove existing instance of the prompt to move it to the top
-            prompts = prompts.filter(p => p !== prompt);
-
-            // Add to the beginning
-            prompts.unshift(prompt);
-
-            // Limit history size
-            if (prompts.length > PROMPT_HISTORY_LIMIT) {
-                prompts = prompts.slice(0, PROMPT_HISTORY_LIMIT);
-            }
-
-            try {
-                localStorage.setItem('promptHistory', JSON.stringify(prompts));
-            } catch (e) {
-                 console.error("Error saving prompt history:", e);
-            }
-            loadPromptHistory(); // Update dropdown immediately
+            if (!prompt || !prompt.trim()) return;
+            let prompts = []; try { prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]'); } catch (e) { console.error("Err parse prompt history:", e); prompts = []; }
+            prompts = prompts.filter(p => p !== prompt); prompts.unshift(prompt);
+            if (prompts.length > PROMPT_HISTORY_LIMIT) prompts = prompts.slice(0, PROMPT_HISTORY_LIMIT);
+            try { localStorage.setItem('promptHistory', JSON.stringify(prompts)); } catch (e) { console.error("Err save prompt history:", e); }
+            loadPromptHistory();
         }
-
         function loadPromptHistory() {
-            let prompts = [];
-             try {
-                prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]');
-            } catch (e) {
-                 console.error("Error parsing prompt history on load:", e);
-                prompts = [];
-            }
-
-            const select = domElements.promptHistorySelect;
-            // Keep the first "Select..." option, clear the rest
-            select.length = 1;
-            select.options[0].textContent = translations[domElements.languageSelect.value]?.select_prompt_history || "Select a previous prompt";
-
-
-            prompts.forEach(prompt => {
-                const option = document.createElement('option');
-                option.value = prompt;
-                // Truncate long prompts for display in the dropdown
-                option.textContent = prompt.length > 80 ? prompt.substring(0, 77) + '...' : prompt;
-                select.appendChild(option);
-            });
-             select.selectedIndex = 0; // Ensure "Select..." is shown initially
+             let prompts = []; try { prompts = JSON.parse(localStorage.getItem('promptHistory') || '[]'); } catch (e) { console.error("Err load prompt history:", e); prompts = []; }
+             const select = domElements.promptHistorySelect; select.length = 1; // Keep default option
+             const lang = domElements.languageSelect.value;
+             select.options[0].textContent = translations[lang]?.select_prompt_history || translations.en.select_prompt_history;
+             prompts.forEach(prompt => { const option = document.createElement('option'); option.value = prompt; option.textContent = prompt.length > 80 ? prompt.substring(0, 77) + '...' : prompt; select.appendChild(option); });
+             select.selectedIndex = 0;
         }
 
-        // --- UI Interaction Functions ---
-
-        // Update hidden height/width based on resolution dropdown
+        // --- UI Interaction ---
         function updateResolution(value) {
-            if (value && value.includes('x')) {
-                const [width, height] = value.split('x');
-                domElements.widthInput.value = width;
-                domElements.heightInput.value = height;
-            } else {
-                 // Handle cases where value might be empty or invalid
-                 console.warn("Invalid resolution value:", value);
-                 domElements.widthInput.value = ''; // Or set a default
-                 domElements.heightInput.value = ''; // Or set a default
-            }
+             if (value && value.includes('x')) { const [width, height] = value.split('x'); domElements.widthInput.value = width; domElements.heightInput.value = height; }
+             else { domElements.widthInput.value = ''; domElements.heightInput.value = ''; }
         }
-
-        function showFormMessage(text, isError = false) {
-            domElements.formMessage.textContent = text;
-            domElements.formMessage.classList.remove('hidden');
-            if (isError) {
-                domElements.formMessage.classList.remove('text-green-400');
-                domElements.formMessage.classList.add('text-red-400');
-            } else {
-                domElements.formMessage.classList.remove('text-red-400');
-                domElements.formMessage.classList.add('text-green-400');
-            }
-            // Optional: Hide message after some time
-             setTimeout(() => { domElements.formMessage.classList.add('hidden'); }, 5000);
+        function showFormMessage(element, text, isError = false) {
+             element.textContent = text;
+             element.className = `mt-4 text-sm ${isError ? 'text-red-400' : 'text-green-400'}`; // Make sure it's visible
+             element.classList.remove('hidden'); // Ensure visible
+             setTimeout(() => { element.classList.add('hidden'); }, 5000);
         }
-
         function resetStatusDisplay() {
-             domElements.statusDisplay.classList.add('hidden');
-             domElements.jobIdSpan.textContent = '';
-             domElements.statusSpan.textContent = '';
-             domElements.progressValueSpan.textContent = '0%';
-             domElements.progressBar.style.width = '0%';
-             domElements.messageSpan.textContent = '';
-             domElements.downloadSection.classList.add('hidden');
-             domElements.videoPreview.classList.add('hidden');
-             domElements.videoPreview.pause();
-             domElements.videoSource.removeAttribute('src');
+             domElements.statusDisplay.classList.add('hidden'); domElements.jobIdSpan.textContent = '';
+             domElements.statusSpan.textContent = ''; domElements.statusSpan.className = 'font-semibold'; // Reset class
+             domElements.progressValueSpan.textContent = '0%'; domElements.progressBar.style.width = '0%'; domElements.messageSpan.textContent = '';
+             domElements.downloadSection.classList.add('hidden'); domElements.videoPreview.classList.add('hidden');
+             domElements.videoPreview.pause(); domElements.videoSource.removeAttribute('src');
         }
-
 
         // --- Event Listeners ---
-
-        // Load initial content on page load
         window.addEventListener('load', async () => {
-            await loadModels(); // Load models first
-            loadSettings(); // Then load settings (which might set the selected model)
-            // Ensure resolution hidden fields are set based on initial/loaded value
-            if (domElements.resolutionSelect.value) {
-                 updateResolution(domElements.resolutionSelect.value);
-            }
+            await loadModels(); // Load model list first
+            loadSettings();     // Then load saved settings (which includes model selections)
+            // Ensure resolution hidden fields match initial dropdown state
+            if (domElements.resolutionSelect.value) updateResolution(domElements.resolutionSelect.value);
         });
 
-        // Handle language change
-        domElements.languageSelect.addEventListener('change', (e) => {
-            updateLanguage(e.target.value);
-            saveSettings(); // Save language preference immediately
-            loadPromptHistory(); // Update prompt history dropdown text
-        });
+        domElements.languageSelect.addEventListener('change', (e) => { updateLanguage(e.target.value); saveSettings(); loadPromptHistory(); });
 
-        // Handle settings changes and save them
+        // Add change listeners to ALL fields managed by settingFields to trigger saveSettings
         settingFields.forEach(id => {
             const element = document.getElementById(id);
-            if (element && id !== 'language') { // Language handled separately
+            if (element && id !== 'language') {
                 element.addEventListener('change', saveSettings);
             }
         });
-
-         // Update hidden resolution fields when dropdown changes
-        domElements.resolutionSelect.addEventListener('change', (e) => {
-            updateResolution(e.target.value);
-             // saveSettings(); // Already saved by the generic handler above
-        });
-
-        // Handle prompt history selection
-        domElements.promptHistorySelect.addEventListener('change', (e) => {
-            if (e.target.value) {
-                domElements.promptInput.value = e.target.value;
-            }
-        });
+        // Specific listener for resolution dropdown (already covered by above loop, but explicit doesn't hurt)
+        domElements.resolutionSelect.addEventListener('change', (e) => updateResolution(e.target.value));
+        // Prompt history selection updates prompt input
+        domElements.promptHistorySelect.addEventListener('change', (e) => { if (e.target.value) domElements.promptInput.value = e.target.value; });
 
         // Settings modal toggle
-        domElements.settingsBtn.addEventListener('click', () => {
-            domElements.settingsModal.classList.add('show');
-        });
-        domElements.closeSettingsBtn.addEventListener('click', () => {
-            domElements.settingsModal.classList.remove('show');
-        });
-        // Close modal on outside click
-        domElements.settingsModal.addEventListener('click', (e) => {
-            if (e.target === domElements.settingsModal) {
-                domElements.settingsModal.classList.remove('show');
-            }
-        });
+        domElements.settingsBtn.addEventListener('click', () => domElements.settingsModal.classList.add('show'));
+        domElements.closeSettingsBtn.addEventListener('click', () => domElements.settingsModal.classList.remove('show'));
+        domElements.settingsModal.addEventListener('click', (e) => { if (e.target === domElements.settingsModal) domElements.settingsModal.classList.remove('show'); });
 
-        // Tab switching logic
+        // Tab switching
         domElements.tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Clear any previous polling
-                 if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
-                }
-                resetStatusDisplay(); // Reset status when switching tabs
-
-                domElements.tabs.forEach(t => {
-                    t.classList.remove('text-purple-400', 'border-b-2', 'border-purple-600');
-                    t.classList.add('text-gray-300');
-                });
-                tab.classList.add('text-purple-400', 'border-b-2', 'border-purple-600');
-
+                if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } // Clear interval when switching tabs
+                resetStatusDisplay(); // Reset status display when switching away from status tab or to it initially
+                domElements.tabs.forEach(t => t.classList.remove('active')); tab.classList.add('active');
                 domElements.contents.forEach(c => c.classList.add('hidden'));
-                const contentId = `content-${tab.id.split('-')[1]}`;
+                const contentId = `content-${tab.id.split('-').slice(1).join('-')}`; // e.g. 'content-generate-t2v', 'content-status'
                 const contentElement = document.getElementById(contentId);
-                 if (contentElement) {
-                     contentElement.classList.remove('hidden');
-                 }
-
-                 // If switching to status tab, maybe auto-check if ID field has value
-                 if(tab.id === 'tab-status' && domElements.jobIdInput.value){
-                     checkJobStatus(domElements.jobIdInput.value);
-                 }
+                if (contentElement) contentElement.classList.remove('hidden');
+                // If switching to the status tab and there's a Job ID in the input, check it
+                if(tab.id === 'tab-status' && domElements.jobIdInput.value) {
+                    checkJobStatus(domElements.jobIdInput.value);
+                }
             });
         });
 
-        // Handle form submission
-        domElements.videoForm.addEventListener('submit', async (e) => {
+        // Image preview
+        domElements.imageUploadInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => { domElements.imagePreview.src = e.target.result; domElements.imagePreview.classList.remove('hidden'); }
+                reader.readAsDataURL(this.files[0]);
+            } else { domElements.imagePreview.classList.add('hidden'); domElements.imagePreview.src = '#'; }
+        });
+
+        // T2V Form submission
+        domElements.t2vForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const currentPrompt = domElements.promptInput.value;
-            if (!currentPrompt.trim()) {
-                 showFormMessage("Prompt cannot be empty.", true);
-                 return;
-            }
-            if (!domElements.modelSelect.value) {
-                 showFormMessage("Please select a model.", true);
-                 return;
-            }
+            if (!currentPrompt.trim()) { showFormMessage(domElements.t2vFormMessage, "Prompt cannot be empty.", true); return; }
+            if (!domElements.t2vModelSelect.value) { showFormMessage(domElements.t2vFormMessage, "Please select a T2V model.", true); return; }
+            savePrompt(currentPrompt);
 
+            const formData = new FormData(domElements.t2vForm); // Use FormData to easily get values
+            const requestData = {};
+            formData.forEach((value, key) => { if (value !== '') requestData[key] = value; }); // Collect T2V form data
 
-            savePrompt(currentPrompt); // Save prompt to history
-
-            const formData = new FormData(domElements.videoForm); // Get data from form elements
-             // Add settings from the modal that aren't direct form fields
-             const settingsToAdd = ['negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps', 'height', 'width'];
-             settingsToAdd.forEach(fieldId => {
+             // Add relevant shared settings from modal/globals
+             const sharedSettings = ['negative_prompt', 'guidance_scale', 'steps', 'seed', 'fps', 'height', 'width'];
+             sharedSettings.forEach(fieldId => {
                  const element = document.getElementById(fieldId);
-                 if (element && !formData.has(fieldId)) { // Add if not already present from form
-                     formData.append(fieldId, element.value);
+                 if (element && element.value !== '' && !requestData.hasOwnProperty(fieldId)) {
+                     // Check if field is numeric and convert, handle potential empty string for numbers
+                     const numFields = ['guidance_scale', 'steps', 'seed', 'fps', 'height', 'width'];
+                      if (numFields.includes(fieldId)) {
+                         const numValue = Number(element.value);
+                         if (!isNaN(numValue)) { // Only add if it's a valid number
+                            requestData[fieldId] = numValue;
+                         }
+                      } else {
+                         requestData[fieldId] = element.value;
+                      }
+                 }
+             });
+            // Ensure nb_frames is a number if present
+            if (requestData['nb_frames']) requestData['nb_frames'] = Number(requestData['nb_frames']);
+
+
+            console.log("Submitting T2V Request Data:", requestData);
+
+            showFormMessage(domElements.t2vFormMessage, "Submitting T2V job...");
+            // Pass the form element itself
+            submitJob(API_BASE_URL + '/submit', requestData, domElements.t2vForm, domElements.t2vFormMessage, false);
+        });
+
+        // I2V Form submission
+        domElements.i2vForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const imageFile = domElements.imageUploadInput.files[0];
+            if (!imageFile) { showFormMessage(domElements.i2vFormMessage, "Please upload an image.", true); return; }
+            if (!domElements.i2vModelSelect.value) { showFormMessage(domElements.i2vFormMessage, "Please select an I2V model.", true); return; }
+
+            const formData = new FormData(); // Use FormData for file upload
+            formData.append('image', imageFile);
+            if (domElements.i2vModelSelect.value) formData.append('model_name', domElements.i2vModelSelect.value);
+            if (domElements.i2vPromptInput.value) formData.append('prompt', domElements.i2vPromptInput.value);
+
+            // Add relevant I2V/shared settings from modal/globals
+            // Check API spec for exact field names expected by /submit_image_video
+            // Assuming 'num_frames', 'steps' (maps to num_inference_steps?), 'seed', 'fps', 'height', 'width', 'motion_bucket_id', 'noise_aug_strength'
+            const i2vSettingsMap = {
+                 'i2v_frames': 'num_frames', // Map form input ID to API field name
+                 'steps': 'num_inference_steps', // Map 'steps' from modal to API field name
+                 'seed': 'seed',
+                 'fps': 'fps',
+                 'height': 'height',
+                 'width': 'width',
+                 'motion_bucket_id': 'motion_bucket_id',
+                 'noise_aug_strength': 'noise_aug_strength'
+            };
+
+             Object.entries(i2vSettingsMap).forEach(([elementId, apiKey]) => {
+                 const element = document.getElementById(elementId);
+                 if (element && element.value !== '') {
+                     formData.append(apiKey, element.value);
                  }
              });
 
+             // Convert numeric fields if necessary (FormData sends strings, backend might handle it)
+             // Example: If backend requires numbers explicitly
+             // for (const key of ['num_frames', 'num_inference_steps', 'seed', 'fps', 'height', 'width', 'motion_bucket_id', 'noise_aug_strength']) {
+             //     if (formData.has(key)) {
+             //         const numValue = Number(formData.get(key));
+             //         if (!isNaN(numValue)) formData.set(key, numValue); // Overwrite with number if valid
+             //         else formData.delete(key); // Remove if not a valid number (optional)
+             //     }
+             // }
 
-             // Convert FormData to JSON object for the API
-             const requestData = {};
-             formData.forEach((value, key) => {
-                // Convert numbers where appropriate
-                const numFields = ['nb_frames', 'guidance_scale', 'steps', 'seed', 'fps', 'height', 'width'];
-                if (numFields.includes(key) && value !== '') {
-                    requestData[key] = Number(value);
-                } else if (value !== '' || key === 'negative_prompt') { // Allow empty negative prompt, skip others
-                     requestData[key] = value;
-                 }
-             });
+             console.log("Submitting I2V Request Data (FormData):");
+             for (let [key, value] of formData.entries()) {
+                 console.log(`${key}: ${value}`);
+             }
 
-             // Clear previous message
-             domElements.formMessage.classList.add('hidden');
+             showFormMessage(domElements.i2vFormMessage, "Submitting I2V job...");
+             // Pass the form element itself
+             submitJob(API_BASE_URL + '/submit_image_video', formData, domElements.i2vForm, domElements.i2vFormMessage, true);
+        });
+
+        // --- Generic Job Submission Function (FIXED) ---
+        async function submitJob(url, data, formElement, messageElement, isFormData = false) {
+            // Find the submit button *within the specific form*
+            const submitButton = formElement.querySelector('button[type="submit"]');
+
+            if (!submitButton) {
+                 console.error("Could not find submit button within the form:", formElement);
+                 showFormMessage(messageElement, "Internal error: Could not locate submit button.", true);
+                 return; // Stop if button not found
+            }
+
+            const originalButtonText = submitButton.textContent; // Store original text
+            submitButton.disabled = true; submitButton.textContent = "Submitting...";
 
             try {
-                const submitButton = domElements.videoForm.querySelector('button[type="submit"]');
-                 submitButton.disabled = true;
-                 submitButton.textContent = "Submitting...";
+                const options = { method: 'POST', body: isFormData ? data : JSON.stringify(data) };
+                if (!isFormData) options.headers = { 'Content-Type': 'application/json' };
 
-
-                const response = await fetch(`${API_BASE_URL}/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
-                });
-
-                 submitButton.disabled = false;
-                 submitButton.textContent = translations[domElements.languageSelect.value]?.generate || 'Generate Video';
-
+                const response = await fetch(url, options);
 
                 if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ detail: 'Unknown server error' }));
-                     throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-                 }
+                     let errorDetail = `HTTP error ${response.status}`;
+                     try {
+                         const errorData = await response.json();
+                         errorDetail = errorData.detail || JSON.stringify(errorData);
+                     } catch (e) {
+                         // If parsing error response fails, use the status text
+                         errorDetail = response.statusText || errorDetail;
+                     }
+                     throw new Error(errorDetail);
+                }
 
-                const data = await response.json();
-                showFormMessage(`Job submitted! Job ID: ${data.job_id}`);
+                const result = await response.json();
+                showFormMessage(messageElement, `Job submitted! Job ID: ${result.job_id}`);
+                localStorage.setItem('lastJobId', result.job_id);
 
-                // --- Post-submission actions ---
-                // 1. Save Job ID
-                localStorage.setItem('lastJobId', data.job_id);
+                if (!isFormData) domElements.promptInput.value = ''; // Clear T2V prompt
+                domElements.promptHistorySelect.selectedIndex = 0; // Reset history dropdown
 
-                // 2. Clear the prompt field ONLY
-                domElements.promptInput.value = '';
-                // 3. Reset prompt history selection
-                domElements.promptHistorySelect.selectedIndex = 0;
-
-                // 4. Switch to status tab
-                document.getElementById('tab-status').click(); // Simulate click to switch
-
-                // 5. Populate job ID input on status tab
-                domElements.jobIdInput.value = data.job_id;
-
-                // 6. Start checking status immediately
-                checkJobStatus(data.job_id);
+                document.getElementById('tab-status').click(); // Switch to status tab
+                domElements.jobIdInput.value = result.job_id; // Populate job ID input
+                checkJobStatus(result.job_id); // Start checking status immediately
 
             } catch (error) {
                  console.error('Job submission failed:', error);
-                 showFormMessage(`Failed to submit job: ${error.message || 'Network error'}`, true);
-            }
-        });
-
-
-        // --- Job Status Functions ---
-
-        async function checkJobStatus(jobId) {
-            if (!jobId || !jobId.trim()) {
-                resetStatusDisplay();
-                return;
-            }
-            console.log(`Checking status for job: ${jobId}`);
-
-            // Clear any existing interval before starting a new one
-             if (pollingInterval) {
-                 clearInterval(pollingInterval);
-                 pollingInterval = null;
-             }
-
-            domElements.statusDisplay.classList.remove('hidden');
-            domElements.jobIdSpan.textContent = jobId; // Show ID immediately
-            domElements.statusSpan.textContent = "Checking..."; // Initial state
-
-
-            const updateStatus = async () => {
-                console.log(`Polling status for ${jobId}...`);
-                try {
-                    const response = await fetch(`${API_BASE_URL}/status/${jobId}`);
-
-                    // Handle 404 specifically
-                    if (response.status === 404) {
-                         console.log(`Job ${jobId} not found (404).`);
-                         domElements.statusSpan.textContent = 'Not Found';
-                         domElements.messageSpan.textContent = 'Job ID not found.';
-                         domElements.progressValueSpan.textContent = '0%';
-                         domElements.progressBar.style.width = '0%';
-                         domElements.downloadSection.classList.add('hidden');
-                         domElements.videoPreview.classList.add('hidden');
-                         clearInterval(pollingInterval);
-                         pollingInterval = null;
-                         localStorage.removeItem('lastJobId'); // Remove invalid ID
-                         return; // Stop polling
-                    }
-
-                    if (!response.ok) {
-                         // Handle other errors
-                         throw new Error(`Status check failed: ${response.statusText} (${response.status})`);
-                    }
-
-                    const data = await response.json();
-
-                    // Update UI elements
-                    domElements.jobIdSpan.textContent = data.job_id;
-                    domElements.statusSpan.textContent = data.status;
-                    domElements.progressValueSpan.textContent = `${data.progress || 0}%`;
-                    domElements.progressBar.style.width = `${data.progress || 0}%`;
-                    domElements.messageSpan.textContent = data.message || 'No message';
-
-                    // Handle terminal states (completed/failed)
-                    const isTerminal = data.status === 'completed' || data.status === 'failed';
-
-                    if (data.status === 'completed' && data.video_url) {
-                        const videoUrl = `${API_BASE_URL}${data.video_url}`;
-                        domElements.downloadLink.href = videoUrl;
-                        domElements.videoSource.src = videoUrl; // Set source for preview
-                        domElements.downloadSection.classList.remove('hidden');
-                        // Don't show preview immediately, wait for button click
-                        domElements.videoPreview.classList.add('hidden');
-                    } else {
-                        domElements.downloadSection.classList.add('hidden');
-                        domElements.videoPreview.classList.add('hidden');
-                    }
-
-                    if (isTerminal) {
-                        console.log(`Job ${jobId} reached terminal state: ${data.status}`);
-                         clearInterval(pollingInterval);
-                         pollingInterval = null;
-                         localStorage.removeItem('lastJobId'); // Clear ID once finished
-                    }
-
-                } catch (error) {
-                    console.error(`Error checking status for job ${jobId}:`, error);
-                    // Avoid flooding logs if server is down temporarily
-                    // Show error in UI but don't necessarily stop polling immediately unless it's a 404
-                     domElements.statusSpan.textContent = 'Error';
-                     domElements.messageSpan.textContent = `Error fetching status: ${error.message}`;
-                    // Maybe add logic here to stop polling after several consecutive errors
-                }
-            };
-
-            // Initial immediate check
-            await updateStatus();
-
-            // Start polling only if not already in a terminal state
-            if (!pollingInterval && !['completed', 'failed', 'Not Found', 'Error'].includes(domElements.statusSpan.textContent)) {
-                pollingInterval = setInterval(updateStatus, POLLING_INTERVAL_MS);
-                 console.log(`Started polling for ${jobId}`);
-            } else {
-                 console.log(`Not starting polling for ${jobId}, initial state is terminal or error.`);
+                 showFormMessage(messageElement, `Failed to submit job: ${error.message || 'Network error'}`, true);
+            } finally {
+                 // Ensure button is re-enabled and text is restored even if an error occurs
+                 submitButton.disabled = false;
+                 submitButton.textContent = originalButtonText; // Restore original text
             }
         }
 
-        // Manual status check button
+        // --- Job Status Functions ---
+        async function checkJobStatus(jobId) {
+             if (!jobId || !jobId.trim()) { resetStatusDisplay(); return; }
+             // Clear any existing interval ONLY if we are starting a NEW check
+             if (pollingInterval) clearInterval(pollingInterval);
+             pollingInterval = null; // Reset interval ID
+
+
+             domElements.statusDisplay.classList.remove('hidden');
+             domElements.jobIdSpan.textContent = jobId;
+             domElements.statusSpan.textContent = "Checking...";
+             domElements.statusSpan.className = 'font-semibold status-pending'; // Initial style
+
+             let consecutiveErrors = 0; // Track errors
+
+             const updateStatus = async () => {
+                 // console.debug(`Polling status for ${jobId}...`); // Reduce noise
+                 try {
+                     const response = await fetch(`${API_BASE_URL}/status/${jobId}`);
+                     consecutiveErrors = 0; // Reset error count on success
+
+                     if (response.status === 404) {
+                         domElements.statusSpan.textContent = 'Not Found'; domElements.statusSpan.className = 'font-semibold status-failed';
+                         domElements.messageSpan.textContent = 'Job ID not found.';
+                         domElements.progressValueSpan.textContent = '0%'; domElements.progressBar.style.width = '0%';
+                         domElements.downloadSection.classList.add('hidden'); domElements.videoPreview.classList.add('hidden');
+                         if (pollingInterval) clearInterval(pollingInterval); pollingInterval = null;
+                         localStorage.removeItem('lastJobId'); return;
+                     }
+                     if (!response.ok) throw new Error(`Status check failed: ${response.statusText} (${response.status})`);
+
+                     const data = await response.json();
+                     const statusText = data.status || 'unknown'; // e.g., "loading model", "waiting for resources"
+
+                     domElements.jobIdSpan.textContent = data.job_id;
+                     domElements.statusSpan.textContent = statusText.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()); // Format status text
+                     domElements.messageSpan.textContent = data.message || 'No message';
+
+                     // Apply status-specific styling and progress bar logic
+                     let statusClass = 'status-pending';
+                     let progressPercent = Math.max(0, Math.min(100, data.progress || 0)); // Clamp progress
+                     let progressText = `${progressPercent}%`;
+
+                     switch(statusText.toLowerCase()) {
+                        case 'waiting_for_resources': // Match potential backend strings
+                            statusClass = 'status-waiting'; progressText = 'Waiting...'; break;
+                        case 'loading_model':
+                            statusClass = 'status-loading'; progressText = 'Loading...'; break;
+                        case 'processing':
+                            statusClass = 'status-processing'; break; // Use actual progress
+                        case 'completed':
+                            statusClass = 'status-completed'; progressPercent = 100; break;
+                        case 'failed':
+                            statusClass = 'status-failed'; progressPercent = 0; break; // Reset progress on fail
+                     }
+                     domElements.statusSpan.className = `font-semibold ${statusClass}`;
+                     domElements.progressValueSpan.textContent = progressText;
+                     domElements.progressBar.style.width = `${progressPercent}%`;
+
+
+                     const isTerminal = ['completed', 'failed'].includes(statusText.toLowerCase());
+                     if (statusText.toLowerCase() === 'completed' && data.video_url) {
+                         const videoUrl = `${API_BASE_URL}${data.video_url}`;
+                         domElements.downloadLink.href = videoUrl; domElements.videoSource.src = videoUrl;
+                         domElements.downloadSection.classList.remove('hidden');
+                         domElements.videoPreview.classList.add('hidden'); // Keep preview hidden initially
+                     } else if (!isTerminal){ // Hide download if not completed
+                         domElements.downloadSection.classList.add('hidden');
+                         domElements.videoPreview.classList.add('hidden');
+                     } // Don't hide download section on failure, message indicates failure reason
+
+                     if (isTerminal) {
+                         if (pollingInterval) clearInterval(pollingInterval); pollingInterval = null;
+                         localStorage.removeItem('lastJobId');
+                         console.log(`Job ${jobId} finished with status: ${statusText}`);
+                     }
+                 } catch (error) {
+                     consecutiveErrors++;
+                     console.error(`Error checking status for job ${jobId} (Attempt ${consecutiveErrors}):`, error);
+                     domElements.statusSpan.textContent = 'Error'; domElements.statusSpan.className = 'font-semibold status-failed';
+                     domElements.messageSpan.textContent = `Error fetching status: ${error.message}`;
+                     // Stop polling after several consecutive errors
+                     if (consecutiveErrors >= 5) {
+                         console.warn(`Stopping polling for job ${jobId} after ${consecutiveErrors} errors.`);
+                         if (pollingInterval) clearInterval(pollingInterval); pollingInterval = null;
+                         domElements.messageSpan.textContent += ' (Polling stopped due to errors)';
+                     }
+                 }
+             };
+
+             await updateStatus(); // Initial check immediately
+
+             // Start polling ONLY if the job is not already in a terminal state and polling isn't already running
+             const currentStatus = domElements.statusSpan.textContent.toLowerCase();
+             if (!pollingInterval && !['completed', 'failed', 'not found', 'error'].includes(currentStatus)) {
+                 pollingInterval = setInterval(updateStatus, POLLING_INTERVAL_MS);
+                 console.log(`Started polling for job ${jobId}`);
+             }
+        }
+
         domElements.checkStatusBtn.addEventListener('click', () => {
             const jobId = domElements.jobIdInput.value;
-             if (jobId) {
-                localStorage.setItem('lastJobId', jobId); // Save potentially new manual ID
-                checkJobStatus(jobId);
+            if (jobId && jobId.trim()) {
+                localStorage.setItem('lastJobId', jobId.trim());
+                checkJobStatus(jobId.trim());
             } else {
                 resetStatusDisplay();
-                showFormMessage("Please enter a Job ID to check.", true);
+                // Show message in the status area itself
+                domElements.statusDisplay.classList.remove('hidden');
+                domElements.statusSpan.textContent = 'Info';
+                domElements.statusSpan.className = 'font-semibold status-pending';
+                domElements.messageSpan.textContent = "Please enter a Job ID to check.";
             }
         });
 
-         // Preview button logic
-         domElements.previewBtn.addEventListener('click', () => {
-             if (domElements.videoSource.src && domElements.videoSource.src !== window.location.href) { // Check if src is valid
-                 domElements.videoPreview.classList.toggle('hidden');
-                 if (!domElements.videoPreview.classList.contains('hidden')) {
-                     domElements.videoPreview.load(); // Ensure it loads the source
-                     // domElements.videoPreview.play(); // Optional: auto-play
-                 } else {
-                      domElements.videoPreview.pause(); // Pause if hiding
-                 }
-             }
-         });
+        domElements.previewBtn.addEventListener('click', () => {
+            if (domElements.videoSource.src && domElements.videoSource.src !== window.location.href + '#') { // Check if src is valid
+                domElements.videoPreview.classList.toggle('hidden');
+                if (!domElements.videoPreview.classList.contains('hidden')) {
+                    domElements.videoPreview.load(); // Preload data
+                    // Optional: domElements.videoPreview.play(); // Start playing immediately
+                } else {
+                    domElements.videoPreview.pause(); // Pause if hiding
+                }
+            }
+        });
 
     </script>
 </body>

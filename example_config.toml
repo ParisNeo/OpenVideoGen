@@ -1,41 +1,96 @@
-# OpenVideoGen Configuration File
+#
+# File: example_config.toml
+# Author: parisneo
+# Description: Example configuration file for OpenVideoGen with detailed comments.
+# Date: 10/04/2025
+#
 
 [settings]
 # --- General API Settings ---
-default_model = "wan_1_3b"  # Model used if 'model_name' is not specified in the request
+default_t2v_model = "wan_1_3b"  # Model used for /submit if 'model_name' is not specified
+default_i2v_model = "stable_video_xt_1_1" # Model used for /submit_image_video if 'model_name' is not specified
 force_gpu = false             # If true, requires a GPU and errors out if none is found
 use_gpu = true                # If true, attempts to use GPU if available, otherwise falls back to CPU (unless force_gpu is true)
-dtype = "float16"             # Data type for model inference ("float16" or "bfloat16"). bfloat16 might require newer GPUs/torch versions.
+dtype = "bfloat16"            # Data type for model inference ("float16" or "bfloat16"). bfloat16 might require newer GPUs/torch versions.
 output_folder = "./outputs"   # Directory to save generated videos
-model_cache_dir = "./models"  # Custom path for storing downloaded Hugging Face models
+model_cache_dir = "./model_cache" # Custom path for storing downloaded Hugging Face models
 port = 8088                   # Network port the API server will listen on
 host = "0.0.0.0"              # Host address to bind the server to ("0.0.0.0" listens on all interfaces)
-file_retention_time = 3600    # Time in seconds to keep generated video files before cleanup (3600s = 1 hour)
+file_retention_time = 86400   # Time in seconds to keep generated video files before cleanup (86400s = 24 hours)
 
 [generation]
-# --- Default Video Generation Parameters ---
-# These can be overridden in individual API requests
-guidance_scale = 6.0          # Default guidance scale (higher values follow prompt more strictly, potentially less creative)
-num_inference_steps = 50      # Default number of diffusion steps (more steps take longer but can improve quality)
+# --- Default Text-to-Video Generation Parameters ---
+# These can be overridden in individual API requests for T2V models
+default_guidance_scale = 6.0          # Default guidance scale (higher values follow prompt more strictly)
+default_num_inference_steps = 50      # Default number of diffusion steps
 
-# --- Model-Specific Defaults (Example for Wan, add others if needed) ---
+# --- Model-Specific Defaults (Examples, adjust as needed) ---
 # These are used if not provided in the request AND the specific model type is selected
-# wan_default_height = 480
-# wan_default_width = 832
-# wan_default_num_frames = 81
-# wan_default_fps = 15
-# wan_default_guidance_scale = 5.0
+
+# Wan (wan)
+wan_default_height = 480
+wan_default_width = 832
+wan_default_num_frames = 81
+wan_default_fps = 15
+wan_default_guidance_scale = 5.0
+
+# Mochi (mochi)
+mochi_default_height = 768 # Example - check Mochi recommendations
+mochi_default_width = 768
+mochi_default_num_frames = 84
+mochi_default_fps = 30
+# Mochi doesn't typically use guidance scale or neg prompts in basic examples
+
+# Hunyuan (hunyuan)
+hunyuan_default_height = 576 # Example - check Hunyuan recommendations
+hunyuan_default_width = 1024
+hunyuan_default_num_frames = 61
+hunyuan_default_fps = 15
+# Hunyuan uses steps, height, width, num_frames
+
+# LTX (ltx)
+ltx_default_height = 480 # Example - check LTX recommendations
+ltx_default_width = 704
+ltx_default_num_frames = 161
+ltx_default_fps = 24
+# LTX uses steps, height, width, num_frames
+
+# AnimateDiff (animatediff) - Used with models like epiCRealism
+animatediff_default_height = 512
+animatediff_default_width = 512
+animatediff_default_num_frames = 16
+animatediff_default_fps = 8
+animatediff_guidance_scale = 7.5 # Uses guidance and neg prompts
+
+# --- Default Image-to-Video Generation Parameters ---
+# Used for I2V models like Stable Video Diffusion
+img2vid_default_height = 576
+img2vid_default_width = 1024
+img2vid_default_num_frames = 25
+img2vid_default_fps = 7
+# SVD Specific:
+img2vid_motion_bucket_id = 127    # Controls motion amount (0-255)
+img2vid_noise_aug_strength = 0.02 # Noise augmentation level
+img2vid_decode_chunk_size = 8     # VAE decode chunk size (reduce if OOM)
+# SVD doesn't typically use guidance_scale in its standard pipeline
 
 [models]
 # --- Available Model Definitions ---
 # The key (e.g., "cogvideox_2b") is the identifier used in API requests ('model_name').
 # 'name' is the Hugging Face repository ID.
-# 'type' tells the script how to load and use the model ("cogvideox", "stablevideo", "mochi", "wan").
+# 'type' tells the script how to load and use the model.
+# Add 'variant' if a specific model variant (like bf16, fp16) should be loaded.
 
+# --- Text-to-Video (T2V) Models ---
 cogvideox_2b = { name = "THUDM/CogVideoX-2b", type = "cogvideox" }
-cogvideox_5b = { name = "THUDM/CogVideoX-5b", type = "cogvideox" }
-stable_video = { name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo" }
-mochi = { name = "genmo/mochi-1-preview", type = "mochi" }
-
-# --- Wan Model (Example - Add back if you want to use it) ---
+# cogvideox_5b = { name = "THUDM/CogVideoX-5b", type = "cogvideox" } # Larger model
 wan_1_3b = { name = "Wan-AI/Wan2.1-T2V-1.3B-Diffusers", type = "wan" }
+mochi_1_bf16 = { name = "genmo/mochi-1-preview", type = "mochi", variant="bf16" }
+hunyuan = { name = "hunyuanvideo-community/HunyuanVideo", type = "hunyuan" }
+ltx = { name = "Lightricks/LTX-Video", type = "ltx" }
+epicrealism_animatediff = { name = "emilianJR/epiCRealism", type = "animatediff", adapter = "guoyww/animatediff-motion-adapter-v1-5-2" } # Needs MotionAdapter
+
+# --- Image-to-Video (I2V) Models ---
+stable_video = { name = "stabilityai/stable-video-diffusion-img2vid", type = "img2vid" }
+stable_video_xt = { name = "stabilityai/stable-video-diffusion-img2vid-xt", type = "img2vid" } # Original SVD-XT
+stable_video_xt_1_1 = { name = "stabilityai/stable-video-diffusion-img2vid-xt-1-1", type = "img2vid" } # SVD-XT 1.1

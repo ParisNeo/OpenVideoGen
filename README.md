@@ -1,292 +1,251 @@
 # OpenVideoGen
 
+#
+# File: README.md
+# Author: parisneo
+# Description: Project Readme file for OpenVideoGen.
+# Date: 10/04/2025
+#
+
 <div align="center">
-  <img src="https://github.com/ParisNeo/OpenVideoGen/blob/main/assets/icon.png" alt="Logo" width="200" height="200">
+  <img src="https://github.com/ParisNeo/OpenVideoGen/blob/main/assets/openvideogen-icon.png" alt="Logo" width="200" height="200"> <!-- Updated path -->
 </div>
 
 [![License](https://img.shields.io/github/license/ParisNeo/OpenVideoGen)](https://github.com/ParisNeo/OpenVideoGen/blob/main/LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/release/python-311/)
 [![GitHub stars](https://img.shields.io/github/stars/ParisNeo/OpenVideoGen?style=social)](https://github.com/ParisNeo/OpenVideoGen/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ParisNeo/OpenVideoGen)](https://github.com/ParisNeo/OpenVideoGen/issues)
-[![Discord](https://img.shields.io/discord/1818856788?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.com/channels/1354804454549094420)
+[![Discord](https://img.shields.io/discord/1354804454549094420?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.com/channels/1354804454549094420) <!-- Updated Discord link -->
 
-Open source video generation API using various diffusion models.
+Open source video generation API using various diffusion models, supporting both **Text-to-Video** and **Image-to-Video** generation.
 
 ## Features
 
-- 🎬 Generate videos from text prompts using state-of-the-art diffusion models
-- 🔄 Support for multiple models (CogVideoX, Stable Video Diffusion, and more)
-- ⚙️ Configurable via `config.toml` with flexible search paths
-- 🚀 FastAPI-based RESTful API with asynchronous job processing
-- 📊 Job status checking and file downloading
-- 🧹 Automatic file purging after a configurable time
-- 🔧 Enhanced control over GPU usage and generation parameters
-- 📝 Logging for debugging and monitoring
-- 📦 Easy installation via pip
-- 🐧 Ubuntu systemd service support
-- 🐳 Docker integration
+- 🎬 **Text-to-Video (T2V):** Generate videos from text prompts.
+- 🖼️ **Image-to-Video (I2V):** Generate videos starting from an input image (e.g., using Stable Video Diffusion).
+- 🔄 Support for multiple models (see [Supported Models](#supported-models)).
+- ✨ Simple Web UI with tabs for T2V, I2V, and Job Status.
+- ⚙️ Configurable via `config.toml` with flexible search paths.
+- 🚀 FastAPI-based RESTful API with asynchronous job processing.
+- 📊 Job status checking and video downloading/previewing.
+- 🧹 Automatic file purging after a configurable time.
+- 🔧 Control over GPU usage, data types (`float16`/`bfloat16`), and generation parameters.
+- 📝 Logging for debugging and monitoring (`openvideogen.log`).
+- 📦 Easy installation via pip.
+- 🐧 Ubuntu systemd service support (`openvideogen.service`).
+- 🐳 Docker integration (`Dockerfile`).
 
 ## Installation
 
 ### Prerequisites
 
 - Python 3.11 or higher
-- CUDA-enabled GPU (optional but recommended for faster generation)
+- `git` (required for installing `diffusers` main branch sometimes)
+- `ffmpeg` installed and available in your system PATH.
+    - **Ubuntu/Debian:** `sudo apt update && sudo apt install ffmpeg`
+    - **Windows:** Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
+    - **macOS:** `brew install ffmpeg`
+- CUDA-enabled GPU (strongly recommended for performance). Check PyTorch compatibility ([pytorch.org](https://pytorch.org/)).
 
 ### Install via pip
 
 ```bash
 pip install openvideogen
 ```
+*(Note: This might install the latest stable release from PyPI. For the absolute latest features/fixes, install from source.)*
 
-### Install from source
+### Install from source (Recommended for latest features)
 
 Clone the repository:
-
 ```bash
 git clone https://github.com/ParisNeo/OpenVideoGen.git
 cd OpenVideoGen
 ```
 
-Install dependencies:
-
+Install dependencies (this will also install OpenVideoGen in editable mode):
 ```bash
-pip install .
+pip install -e .
 ```
+*(This uses `setup.py` which reads `requirements.txt` and installs necessary packages, including PyTorch, diffusers, etc.)*
 
-Install ffmpeg:
-### On ubuntu
-```bash
-sudo apt install ffmpeg
-```
-### On windows
-Download and install ffmpeg from its site 
+The installation process uses `pipmaster` to check and install dependencies, including PyTorch with CUDA support if available.
 
 ## Usage
 
-### Run the API
+### Running the API Server
 
+You can run the server using the installed command-line tool:
+
+```bash
+openvideogen
+```
+
+This command uses the `cli.py` script and is equivalent to running:
 ```bash
 uvicorn openvideogen.main:app --host 0.0.0.0 --port 8088
 ```
 
-You can specify a custom config file using the `--config` argument:
+**Command-line options:**
 
+- `--host <ip>`: Host to bind to (default: `0.0.0.0`).
+- `--port <number>`: Port to listen on (default: `8088`).
+- `--config <path>`: Path to a custom `config.toml` file.
+- `--reload`: Enable auto-reload for development (requires `watchfiles`).
+
+**Example with options:**
 ```bash
-uvicorn openvideogen.main:app --host 0.0.0.0 --port 8088 --config /path/to/custom_config.toml
+openvideogen --port 9000 --config /path/to/my_config.toml --reload
 ```
 
 Alternatively, set the `OPENVIDEOGEN_CONFIG` environment variable:
-
 ```bash
 export OPENVIDEOGEN_CONFIG=/path/to/custom_config.toml
-uvicorn openvideogen.main:app --host 0.0.0.0 --port 8088
+openvideogen
 ```
+
+### Accessing the Web UI
+
+Once the server is running, open your web browser and navigate to: `http://<your-server-ip>:8088/webui` (or the configured host/port).
 
 ### Config File Search Paths
 
-The API searches for `config.toml` in the following locations, in order of priority:
+The API searches for `config.toml` in the following locations (priority order):
+1. Path from `--config` CLI argument.
+2. Path from `OPENVIDEOGEN_CONFIG` environment variable.
+3. System-specific locations (Linux: `/etc`, `/usr/local/etc`, `~/.config`; Windows: `%APPDATA%`, `%PROGRAMDATA%`; macOS: `~/Library/Application Support`, `/Library/Application Support`, `/usr/local/etc`).
+4. Current working directory (`./config.toml`).
+5. Project root directory (if installed from source).
 
-1. Path specified via the `--config` command-line argument.
-2. Path specified via the `OPENVIDEOGEN_CONFIG` environment variable.
-3. System-specific locations:
-
-   **Linux:**
-   - `/etc/openvideogen/config.toml`
-   - `/usr/local/etc/openvideogen/config.toml`
-   - `~/.config/openvideogen/config.toml`
-   - `./config.toml` (current working directory)
-
-   **Windows:**
-   - `%APPDATA%/openvideogen/config.toml`
-   - `./config.toml` (current working directory)
-
-   **macOS:**
-   - `~/Library/Application Support/openvideogen/config.toml`
-   - `/usr/local/etc/openvideogen/config.toml`
-   - `./config.toml` (current working directory)
-
-If no config file is found, a default `config.toml` is created in the current working directory.
+If no config file is found, a default `config.toml` is created in the current working directory. An `example_config.toml` with detailed comments is also included in the repository.
 
 ## API Endpoints
 
-- `GET /health`: Check service status
-- `GET /models`: List available models
-- `POST /submit`: Submit a video generation job and get a job ID
-- `POST /submit_multi`: Submit a multi-prompt video generation job and get a job ID
-- `GET /status/{job_id}`: Check the status of a job
-- `GET /download/{job_id}`: Download the generated video for a job
+- `GET /health`: Check service status and configuration.
+- `GET /models`: List available models from config and their status.
+- `POST /submit`: Submit a **Text-to-Video** job.
+- `POST /submit_image_video`: Submit an **Image-to-Video** job (requires image file upload).
+- `POST /submit_multi`: Submit a multi-prompt T2V job (simple concatenation).
+- `GET /status/{job_id}`: Check the status of a job.
+- `GET /download/{job_id}`: Download the generated video for a completed job.
 
-## Example Usage
+Access the interactive API documentation (Swagger UI) at `/docs`.
 
-### Submit a Job
+## Example API Usage
 
-Submit a video generation job with custom generation parameters:
+### Submit a Text-to-Video Job
 
 ```bash
 curl -X POST "http://localhost:8088/submit" \
 -H "Content-Type: application/json" \
 -d '{
-    "prompt": "A cat playing with a ball",
-    "model_name": "cogvideox_2b",
-    "height": 480,
-    "width": 720,
-    "steps": 75,
-    "guidance_scale": 7.5,
-    "nb_frames": 49,
-    "fps": 8
+    "prompt": "Astronaut riding a horse on the moon, cinematic",
+    "model_name": "wan_1_3b",
+    "negative_prompt": "low quality, blurry",
+    "nb_frames": 60,
+    "fps": 12,
+    "steps": 50,
+    "guidance_scale": 7.0
 }'
 ```
 
-Response:
+### Submit an Image-to-Video Job (e.g., SVD)
 
-```json
-{
-    "job_id": "123e4567-e89b-12d3-a456-426614174000",
-    "message": "Job submitted successfully"
-}
+```bash
+curl -X POST "http://localhost:8088/submit_image_video" \
+-F "image=@/path/to/your/input_image.png" \
+-F "model_name=stable_video_xt_1_1" \
+-F "motion_bucket_id=150" \
+-F "noise_aug_strength=0.05" \
+-F "fps=10"
 ```
+*(Note: Use `-F` for form data when uploading files.)*
 
 ### Check Job Status
 
-Check the status of the job:
-
 ```bash
-curl "http://localhost:8088/status/123e4567-e89b-12d3-a456-426614174000"
-```
-
-Response (when completed):
-
-```json
-{
-    "job_id": "123e4567-e89b-12d3-a456-426614174000",
-    "status": "completed",
-    "message": "Video generated successfully",
-    "video_url": "/download/123e4567-e89b-12d3-a456-426614174000",
-    "created_at": 1696112345.123,
-    "expires_at": 1696115945.123
-}
+curl "http://localhost:8088/status/<job_id_from_submit>"
 ```
 
 ### Download the Video
 
-Download the generated video:
-
 ```bash
-curl "http://localhost:8088/download/123e4567-e89b-12d3-a456-426614174000" --output video.mp4
+curl "http://localhost:8088/download/<job_id_from_submit>" --output video.mp4
 ```
 
-## Configuration
-
-Edit `config.toml` to add or modify models and settings:
+## Configuration (`config.toml`)
 
 ```toml
 [models]
-cogvideox_2b = {name = "THUDM/CogVideoX-2b", type = "cogvideox"}
-cogvideox_5b = {name = "THUDM/CogVideoX-5b", type = "cogvideox"}
-stable_video = {name = "stabilityai/stable-video-diffusion-img2vid", type = "stablevideo"}
+# Define models available to the API
+# 'name': Hugging Face repository ID
+# 'type': Internal type used for loading logic (e.g., "cogvideox", "wan", "img2vid", "hunyuan", "ltx", "animatediff", "mochi")
+# 'variant': (Optional) Specify model variant (e.g., "fp16", "bf16")
+# 'adapter': (Optional, required for 'animatediff') HF repo ID of the motion adapter
+# --- T2V ---
+wan_1_3b = { name = "Wan-AI/Wan2.1-T2V-1.3B-Diffusers", type = "wan" }
+hunyuan = { name = "hunyuanvideo-community/HunyuanVideo", type = "hunyuan" }
+# --- I2V ---
+stable_video_xt_1_1 = {name = "stabilityai/stable-video-diffusion-img2vid-xt-1-1", type = "img2vid"}
 
 [settings]
-default_model = "cogvideox_2b"
-force_gpu = false  # Force GPU usage even if use_gpu is false
-use_gpu = true     # Use GPU if available
-dtype = "float16"
-output_folder = "./outputs"
+default_t2v_model = "wan_1_3b"        # Default for /submit
+default_i2v_model = "stable_video_xt_1_1" # Default for /submit_image_video
+force_gpu = false                     # Error if no GPU when true
+use_gpu = true                        # Use GPU if available
+dtype = "bfloat16"                    # "float16" or "bfloat16"
+output_folder = "./outputs"           # Where videos are saved
+model_cache_dir = "./model_cache"     # HF cache location
 port = 8088
 host = "0.0.0.0"
-file_retention_time = 3600  # Files are deleted after 1 hour (3600 seconds)
+file_retention_time = 86400           # Cleanup after 24 hours (seconds)
 
 [generation]
-guidance_scale = 6.0
-num_inference_steps = 50
+# Default parameters, can be overridden per request or per model type
+# T2V Defaults
+default_guidance_scale = 6.0
+default_num_inference_steps = 50
+# Model-specific T2V (e.g., wan_default_height = 480)
+# ...
+# I2V Defaults (e.g., img2vid_default_fps = 7)
+img2vid_default_height = 576
+img2vid_default_width = 1024
+# ... SVD specific ...
+img2vid_motion_bucket_id = 127
+img2vid_noise_aug_strength = 0.02
 ```
-
-- `force_gpu`: Set to true to force GPU usage, even if `use_gpu` is false. Will raise an error if no GPU is available.
-- `use_gpu`: Set to true to use GPU if available, unless `force_gpu` is true.
-- `guidance_scale`: Controls the influence of the prompt on the generation.
-- `num_inference_steps`: Number of inference steps for generation.
 
 ## Setting Up as an Ubuntu Service
 
-You can run OpenVideoGen as a systemd service on Ubuntu for automatic startup and management.
+Use the provided `openvideogen.service` file to run OpenVideoGen as a systemd service.
 
-### Steps
+1.  **Copy & Edit:**
+    ```bash
+    sudo cp openvideogen.service /etc/systemd/system/
+    sudo nano /etc/systemd/system/openvideogen.service
+    ```
+    Update `User`, `WorkingDirectory`, and `ExecStart` (use the path to `openvideogen` command or `uvicorn` in your venv). Ensure the user has permissions for the working directory, outputs, and model cache.
 
-1. **Copy the Service File:**
+2.  **Enable & Start:**
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable openvideogen.service
+    sudo systemctl start openvideogen.service
+    ```
 
-   Copy the provided `openvideogen.service` file to `/etc/systemd/system/`:
-
-   ```bash
-   sudo cp openvideogen.service /etc/systemd/system/openvideogen.service
-   ```
-
-2. **Edit the Service File:**
-
-   Open the service file for editing:
-
-   ```bash
-   sudo nano /etc/systemd/system/openvideogen.service
-   ```
-
-   Update the following fields:
-   - `User`: Replace `your-username` with your actual username.
-   - `WorkingDirectory`: Replace `/path/to/OpenVideoGen` with the absolute path to your OpenVideoGen directory.
-   - `ExecStart`: Replace `/path/to/venv/bin/uvicorn` with the path to your virtual environment's uvicorn binary (e.g., `/home/your-username/venv/bin/uvicorn`).
-   - Optionally, update the `--port` value if you changed it in `config.toml`.
-
-   Example:
-
-   ```ini
-   [Unit]
-   Description=OpenVideoGen FastAPI Service
-   After=network.target
-
-   [Service]
-   User=your-username
-   WorkingDirectory=/home/your-username/OpenVideoGen
-   ExecStart=/home/your-username/venv/bin/uvicorn openvideogen.main:app --host 0.0.0.0 --port 8088
-   Restart=always
-   Environment="PYTHONUNBUFFERED=1"
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-
-3. **Reload Systemd and Enable the Service:**
-
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable openvideogen.service
-   sudo systemctl start openvideogen.service
-   ```
-
-4. **Check the Service Status:**
-
-   ```bash
-   sudo systemctl status openvideogen.service
-   ```
-
-5. **View Logs:**
-
-   ```bash
-   journalctl -u openvideogen.service -b
-   ```
+3.  **Check Status & Logs:**
+    ```bash
+    sudo systemctl status openvideogen.service
+    journalctl -u openvideogen.service -f
+    ```
 
 ## Docker Integration
 
-You can also run OpenVideoGen in a Docker container.
+Use the provided `Dockerfile` to build and run OpenVideoGen in a container.
 
-### Prerequisites
-
-- Docker installed on your system
-
-### Build the Docker Image
-
-Build the image:
-
-```bash
-docker build -t openvideogen:latest .
-```
+1.  **Build:**
+    ```bash
+    docker build -t openvideogen:latest .
+    ```
 
 ### Run the Docker Container
 
